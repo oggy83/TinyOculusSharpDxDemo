@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CRef.cs" />
     <Compile Include="LibOVR.cs" />
     <Compile Include="MyForm.cs">
       <SubType>Form</SubType>
