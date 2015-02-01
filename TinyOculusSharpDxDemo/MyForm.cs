@@ -17,6 +17,11 @@ namespace TinyOculusSharpDxDemo
 			InitializeComponent();
 		}
 
+		public Panel GetRenderTarget()
+		{
+			return m_renderPanel;
+		}
+
 		private void _OnLoad(object sender, EventArgs e)
 		{
 			if (!LibOVR.ovr_Initialize())

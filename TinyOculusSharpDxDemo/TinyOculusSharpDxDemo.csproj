@@ -70,7 +70,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CRef.cs" />
+    <Compile Include="Framework\DrawCommand.cs" />
+    <Compile Include="Framework\DrawCommandBuffer.cs" />
+    <Compile Include="Framework\DrawContext.cs" />
+    <Compile Include="Framework\DrawFrontendPassCtrl.cs" />
+    <Compile Include="Framework\DrawModelPassCtrl.cs" />
+    <Compile Include="Framework\DrawResourceRepository.cs" />
+    <Compile Include="Framework\DrawSystem.cs" />
+    <Compile Include="Framework\DrawSystem.Type.cs" />
+    <Compile Include="Framework\DrawUtil.cs" />
+    <Compile Include="Framework\Effect.cs" />
+    <Compile Include="Framework\FpsCounter.cs" />
+    <Compile Include="Framework\IDrawPassCtrl.cs" />
     <Compile Include="LibOVR.cs" />
+    <Compile Include="Framework\MathUtil.cs" />
     <Compile Include="MyForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -79,6 +92,13 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Framework\RenderTarget.cs" />
+    <Compile Include="Framework\ResourceBase.cs" />
+    <Compile Include="Framework\ResourceMap.cs" />
+    <Compile Include="Framework\ResourceRepository.cs" />
+    <Compile Include="Scene.cs" />
+    <Compile Include="Framework\TextSystem.cs" />
+    <Compile Include="Framework\TextureView.cs" />
     <EmbeddedResource Include="MyForm.resx">
       <DependentUpon>MyForm.cs</DependentUpon>
     </EmbeddedResource>

@@ -28,13 +28,23 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			this.m_renderPanel = new System.Windows.Forms.Panel();
 			this.SuspendLayout();
+			// 
+			// m_renderPanel
+			// 
+			this.m_renderPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.m_renderPanel.Location = new System.Drawing.Point(0, 0);
+			this.m_renderPanel.Name = "m_renderPanel";
+			this.m_renderPanel.Size = new System.Drawing.Size(284, 261);
+			this.m_renderPanel.TabIndex = 0;
 			// 
 			// MyForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(284, 261);
+			this.Controls.Add(this.m_renderPanel);
 			this.Name = "MyForm";
 			this.Text = "Form1";
 			this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this._OnFormClosed);
@@ -44,6 +54,8 @@
 		}
 
 		#endregion
+
+		private System.Windows.Forms.Panel m_renderPanel;
 	}
 }
 
