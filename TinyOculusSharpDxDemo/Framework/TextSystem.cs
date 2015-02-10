@@ -52,9 +52,9 @@ namespace TinyOculusSharpDxDemo
 				(float)rect.Height / m_dpiScaleY
 			);
 
-			m_renderTarget.BeginDraw();
-			m_renderTarget.DrawText(text, m_textFormat, layout, m_brush);
-			m_renderTarget.EndDraw();
+			//m_renderTarget.BeginDraw();
+			//m_renderTarget.DrawText(text, m_textFormat, layout, m_brush);
+			//m_renderTarget.EndDraw();
 		}
 
 

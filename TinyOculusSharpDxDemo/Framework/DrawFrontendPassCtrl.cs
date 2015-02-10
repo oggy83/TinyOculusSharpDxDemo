@@ -25,14 +25,13 @@ namespace TinyOculusSharpDxDemo
 			// nothing
 		}
 
-		public void StartPass()
+		public void StartPass(RenderTarget renderTarget)
 		{
-			var renderTarget = m_repository.GetDefaultRenderTarget();
 			var context = m_d3d.context;
 
 			// Init a render target
-			context.Rasterizer.SetViewport(new Viewport(0, 0, 800, 600, 0.0f, 1.0f));// temp
-			context.OutputMerger.SetTargets(renderTarget.TargetView);
+			//context.Rasterizer.SetViewport(new Viewport(0, 0, 800, 600, 0.0f, 1.0f));// temp
+			//context.OutputMerger.SetTargets(renderTarget.TargetView);
 		}
 
 		public void ExecuteCommand(DrawCommand command, DrawSystem.WorldData world)

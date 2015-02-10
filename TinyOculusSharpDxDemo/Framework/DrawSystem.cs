@@ -24,9 +24,9 @@ namespace TinyOculusSharpDxDemo
 
 		private static DrawSystem s_singleton = null;
 
-		static public void Initialize(Device device, SwapChain swapChain)
+		static public void Initialize(Device device, SwapChain swapChain, CRef<LibOVR.ovrHmdDesc> hmd)
 		{
-			s_singleton = new DrawSystem(device, swapChain);
+			s_singleton = new DrawSystem(device, swapChain, hmd);
 			timeBeginPeriod(1);// for Sleep() precision
 		}
 
@@ -116,7 +116,7 @@ namespace TinyOculusSharpDxDemo
 
 		#endregion // properties
 
-        private DrawSystem(Device device, SwapChain swapChain)
+		private DrawSystem(Device device, SwapChain swapChain, CRef<LibOVR.ovrHmdDesc> hmd)
         {
 			m_d3d = new D3DData
 			{
@@ -125,12 +125,6 @@ namespace TinyOculusSharpDxDemo
 				swapChain = swapChain,
 			};
 
-			// set render state
-			//m_device.SetRenderState(RenderState.ZEnable, ZBufferType.UseZBuffer);
-			//m_device.SetRenderState(RenderState.CullMode, Cull.Counterclockwise);
-			//m_device.SetRenderState(RenderState.Lighting, false);
-			//m_device.SetRenderState(RenderState.MultisampleAntialias, true);
-			
 			AmbientColor = new Color3(0, 0, 0);
 			m_world.dirLight.Direction = new Vector3(0, 1, 0);
 			m_world.dirLight.Color = new Color3(1, 1, 1);
@@ -139,13 +133,9 @@ namespace TinyOculusSharpDxDemo
 			m_commandBuffer = new DrawCommandBuffer(capacity);
 
 			m_repository = new DrawResourceRepository(m_d3d);
-			m_context = new DrawContext(m_d3d, m_repository);
+			m_context = new DrawContext(m_d3d, m_repository, hmd);
 
-			// create shadow
-			int width = 1024;
-			int height = 1024;
-			//RenderTarget shadow = RenderTarget.CreateShadowBuffer(m_device, "Shadow", width, height);
-			//m_repository.AddResource(shadow);
+			
 		}
 
 		public void SetDirectionalLight(DirectionalLightData light)

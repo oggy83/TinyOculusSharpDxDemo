@@ -191,11 +191,11 @@ namespace TinyOculusSharpDxDemo
 		[StructLayout(LayoutKind.Sequential)]
 		public struct ovrSensorData
 		{
-			ovrVector3f Accelerometer;
-			ovrVector3f Gyro;
-			ovrVector3f Magnetometer;
-			float Temerature;
-			float TimeInSecond;
+			public ovrVector3f Accelerometer;
+			public ovrVector3f Gyro;
+			public ovrVector3f Magnetometer;
+			public float Temerature;
+			public float TimeInSecond;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -205,22 +205,24 @@ namespace TinyOculusSharpDxDemo
 			public ovrPosef CameraPose;
 			public ovrPosef LeveledCameraPose;
 			public ovrSensorData RawSensorData;
-			uint StatusFlags;
-			double LastVisionProcessingTime;
-			double LastVisionFrameLatency;
-			uint LastCameraFrameCounter;
+			public uint StatusFlags;
+			public double LastVisionProcessingTime;
+			public double LastVisionFrameLatency;
+			public uint LastCameraFrameCounter;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct ovrFrameTiming
 		{
-			float DeltaSeconds;
-			double ThisFrameSeconds;
-			double TimewarpPointSeconds;
-			double NextFrameSeconds;
-			double ScanoutMidpointseconds;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-			double[] EyeScanoutSeconds;
+			public float DeltaSeconds;
+			public double ThisFrameSeconds;
+			public double TimewarpPointSeconds;
+			public double NextFrameSeconds;
+			public double ScanoutMidpointseconds;
+			//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+			//public double[] EyeScanoutSeconds;
+			public double EyeScanoutSeconds_0;
+			public double EyeScanoutSeconds_1;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -248,34 +250,59 @@ namespace TinyOculusSharpDxDemo
 		[StructLayout(LayoutKind.Sequential, Pack=8)]
 		public struct ovrRenderAPIConfigHeader
 		{
-			ovrRenderAPIType API;
-			ovrSizei BackBufferSize;
-			int Multisample;
+			public ovrRenderAPIType API;
+			public ovrSizei BackBufferSize;
+			public int Multisample;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct ovrRenderAPIConfig
 		{
-			ovrRenderAPIConfigHeader Header;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-			IntPtr[] PlatformData;
+			public ovrRenderAPIConfigHeader Header;
+
+			// DirectX11 config params
+			public IntPtr Device;
+			public IntPtr DeviceContext;
+			public IntPtr BackBufferRT;
+			public IntPtr BackBufferUAV;
+			public IntPtr SwapChain;
+			IntPtr _PAD0_;
+			IntPtr _PAD1_;
+			IntPtr _PAD2_;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct ovrTextureHeader
 		{
-			ovrRenderAPIType API;
-			ovrSizei TextureSize;
-			ovrRecti RenderViewport;
+			public ovrRenderAPIType API;
+			public ovrSizei TextureSize;
+			public ovrRecti RenderViewport;
 			uint _PAD0_;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct ovrTexture
 		{
-			ovrTextureHeader Header;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-			IntPtr[] PlatformData;
+			public ovrTextureHeader Header;
+
+			// DirectX11 config params
+			public IntPtr Texture;
+			public IntPtr View;
+			IntPtr _PAD0_;
+			IntPtr _PAD1_;
+			IntPtr _PAD2_;
+			IntPtr _PAD3_;
+			IntPtr _PAD4_;
+			IntPtr _PAD5_;
+		}
+
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ovrHSWDisplayState
+		{
+			public bool Displayed;
+			public double StartTime;
+			public double DismissibleTime;
 		}
 
 		[DllImport("libovr.dll")]
@@ -327,7 +354,7 @@ namespace TinyOculusSharpDxDemo
 		public extern static ovrSizei ovrHmd_GetFovTextureSize(IntPtr hmd, ovrEyeType eye, ovrFovPort fov, float pixelsPerDisplayPixel);
 
 		[DllImport("libovr.dll")]
-		public extern static ovrSizei ovrHmd_ConfigureRendering(IntPtr hmd, IntPtr apiConfig, uint distortionCaps, ovrFovPort[] eyeFovIn, [Out] ovrEyeRenderDesc[] eyeRenderDescOut);
+		public extern static bool ovrHmd_ConfigureRendering(IntPtr hmd, IntPtr apiConfig, uint distortionCaps, ovrFovPort[] eyeFovIn, [Out] ovrEyeRenderDesc[] eyeRenderDescOut);
 
 		[DllImport("libovr.dll")]
 		public extern static ovrFrameTiming ovrHmd_BeginFrame(IntPtr hmd, uint frameIndex);
@@ -336,9 +363,15 @@ namespace TinyOculusSharpDxDemo
 		public extern static void ovrHmd_EndFrame(IntPtr hmd, ovrPosef[] renderPose, ovrTexture[] eyeTexture);
 
 		[DllImport("libovr.dll")]
-		public extern static void ovrHmd_GetEyePoses(IntPtr hmd, uint frameIndex, ovrVector3f[] hmdToEyeViewOffset, [Out] ovrPosef outEyePoses, [Out] IntPtr outHmdTrackingState);
+		public extern static void ovrHmd_GetEyePoses(IntPtr hmd, uint frameIndex, ovrVector3f[] hmdToEyeViewOffset, [Out] ovrPosef[] outEyePoses, [Out] IntPtr outHmdTrackingState);
 
 		[DllImport("libovr.dll")]
 		public extern static ovrPosef ovrHmd_GetHmdPosePerEye(IntPtr hmd, ovrEyeType eye);
+
+		[DllImport("libovr.dll")]
+		public extern static void ovrHmd_GetHSWDisplayState(IntPtr hmd, [Out] IntPtr hasWarningState);
+
+		[DllImport("libovr.dll")]
+		public extern static bool ovrHmd_DismissHSWDisplay(IntPtr hmd);
 	}
 }

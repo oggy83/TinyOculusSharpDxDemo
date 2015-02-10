@@ -20,14 +20,32 @@ namespace TinyOculusSharpDxDemo
 		private FpsCounter m_dtFpsCounter;
 		private FpsCounter m_perfFpsCounter;
 
-        public Scene(Device device, SwapChain swapChain, Panel renderTarget)
+        public Scene(Device device, SwapChain swapChain, Panel renderTarget, CRef<LibOVR.ovrHmdDesc> hmd)
 		{
-			DrawSystem.Initialize(device, swapChain);
+			DrawSystem.Initialize(device, swapChain, hmd);
 			TextSystem.Initialize(renderTarget);
 			//InputSystem.Initialize(renderTarget);
 			//CameraSystem.Initialize();
 			//EntitySystem.Initialize();
 
+			// Setting LibOVR 
+			if (!LibOVR.ovrHmd_AttachToWindow(hmd.Ptr, renderTarget.Handle, IntPtr.Zero, IntPtr.Zero))
+			{
+				MessageBox.Show("Failed to AttachToWindow()");
+				Application.Exit();
+			}
+			uint hmdCaps = (uint)LibOVR.ovrHmdCaps.LowPersistence | (uint)LibOVR.ovrHmdCaps.DynamicPrediction;
+			LibOVR.ovrHmd_SetEnabledCaps(hmd.Ptr, hmdCaps);
+
+			uint trackingCaps = (uint)LibOVR.ovrTrackingCaps.Orientation | (uint)LibOVR.ovrTrackingCaps.MagYawCorrection
+				| (uint)LibOVR.ovrTrackingCaps.Position;
+			if (!LibOVR.ovrHmd_ConfigureTracking(hmd.Ptr, trackingCaps, 0))
+			{
+				MessageBox.Show("Failed to ConfigureTracking()");
+				Application.Exit();
+			}
+
+			
 			// camera setting
 			//var cameraSys = CameraSystem.GetInstance();
 			//cameraSys.ActivateCamera(CameraSystem.FreeCameraName);

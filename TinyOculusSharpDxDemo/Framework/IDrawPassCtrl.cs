@@ -10,7 +10,8 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// setup render path
 		/// </summary>
-		void StartPass();
+		/// <param name="renderTarget">render target</param>
+		void StartPass(RenderTarget renderTarget);
 
 		/// <summary>
 		/// set render state for the given command

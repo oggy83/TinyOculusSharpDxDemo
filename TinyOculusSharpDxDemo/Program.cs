@@ -20,40 +20,63 @@ namespace TinyOculusSharpDxDemo
 {
 	static class Program
 	{
-		const int CLIENT_WIDTH = 800;
-		const int CLIENT_HEIGHT = 600;
-		const int FRAME_PER_SEC = 60;
-
 		[STAThread]
 		static void Main()
 		{
+			if (!LibOVR.ovr_Initialize())
+			{
+				MessageBox.Show("Failed to initialize LibOVR.");
+				return;
+			}
+
+			string version = CRef<string>.FromCharPtr(LibOVR.ovr_GetVersionString()).Value;
+			int detect = LibOVR.ovrHmd_Detect();
+
+			var hmd = CRef<LibOVR.ovrHmdDesc>.FromPtr(LibOVR.ovrHmd_Create(0));
+			if (hmd == null)
+			{
+				MessageBox.Show("Oculus Rift not detected.");
+				return;
+			}
+
+			bool isWindow = (hmd.Value.HmdCaps & (int)LibOVR.ovrHmdCaps.ExtendDesktop) == 1 ? false : true;
+			var rect = new LibOVR.ovrRecti
+			{
+				Pos = hmd.Value.WindowPos,
+				Size = hmd.Value.Resolution,
+			};
+
 			var form = new MyForm();
-			form.ClientSize = new Size(CLIENT_WIDTH, CLIENT_HEIGHT + 24/*@todo  menu bar height*/);
+			form.ClientSize = new Size(rect.Size.w, rect.Size.h);
 
 			// Create Device & SwapChain
 			var desc = new SwapChainDescription()
 			{
-				BufferCount = 1,
+				BufferCount = 2,
 				ModeDescription =
-					new ModeDescription(CLIENT_WIDTH, CLIENT_HEIGHT, new Rational(FRAME_PER_SEC, 1), Format.B8G8R8A8_UNorm),
-				IsWindowed = true,
+					new ModeDescription(rect.Size.w, rect.Size.h, new Rational(0, 1), Format.R8G8B8A8_UNorm),
+				IsWindowed = isWindow,
 				OutputHandle = form.GetRenderTarget().Handle,
 				SampleDescription = new SampleDescription(1, 0),
-				SwapEffect = SwapEffect.Discard,
-				Usage = Usage.RenderTargetOutput
+				SwapEffect = SwapEffect.Sequential,
+				Usage = Usage.RenderTargetOutput,
+				Flags = SwapChainFlags.AllowModeSwitch,
 			};
 
 			Device device;
 			SwapChain swapChain;
 			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, desc, out device, out swapChain);
 
-			var scene = new Scene(device, swapChain, form.GetRenderTarget());
+			var scene = new Scene(device, swapChain, form.GetRenderTarget(), hmd);
 			RenderLoop.Run(form, () => { scene.RenderFrame(); });
 
 			// Release
 			scene.Dispose();
 			device.Dispose();
 			swapChain.Dispose();
+
+			LibOVR.ovrHmd_Destroy(hmd.Ptr);
+			LibOVR.ovr_Shutdown();
 		}
 
 	}

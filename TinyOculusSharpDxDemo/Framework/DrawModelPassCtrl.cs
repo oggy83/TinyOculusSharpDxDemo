@@ -20,34 +20,55 @@ namespace TinyOculusSharpDxDemo
 		{
 			m_d3d = d3d;
 			m_repository = repository;
+			
+			// Create object
+			m_rasterizerState = new RasterizerState(m_d3d.device, new RasterizerStateDescription()
+			{
+				CullMode = CullMode.Back,
+				FillMode = FillMode.Solid,
+				IsAntialiasedLineEnabled = true,
+				IsDepthClipEnabled = true,
+			});
+
+			m_depthStencilState = new DepthStencilState(m_d3d.device, new DepthStencilStateDescription()
+			{
+				IsDepthEnabled = true,
+				DepthComparison = Comparison.Less,
+				DepthWriteMask = DepthWriteMask.All,
+			});
 
 			_RegisterStandardSetting();
 
 			m_vcBuf = DrawUtil.CreateConstantBuffer<_VertexShaderConst>(m_d3d);
-			m_dbgVcBuf = DrawUtil.CreateConstantBuffer<_DebugVertexShaderConst>(m_d3d);
 			m_pcBuf = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
-			m_boneBuf = DrawUtil.CreateConstantBuffer(m_d3d, Utilities.SizeOf<Matrix>() * MaxBoneMatrices);
+
+
+			// Init settings
+			var context = m_d3d.context;
+			int width = m_d3d.swapChain.Description.ModeDescription.Width / 2;// @todo yasut
+			int height = m_d3d.swapChain.Description.ModeDescription.Height;
+			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
+			context.Rasterizer.State = m_rasterizerState;
+			context.OutputMerger.DepthStencilState = m_depthStencilState;
+			m_d3d.device.QueryInterface<Device1>().MaximumFrameLatency = 1;
 		}
 
 		public void Dispose()
 		{
-			// nothing
+			m_depthStencilState.Dispose();
+			m_rasterizerState.Dispose();
 		}
 
 		/// <summary>
 		/// setup render pass
 		/// </summary>
-		public void StartPass()
+		public void StartPass(RenderTarget renderTarget)
 		{
-			var renderTarget = m_repository.GetDefaultRenderTarget();
 			var context = m_d3d.context;
-
-			// Init a render target
-			context.Rasterizer.SetViewport(new Viewport(0, 0, 800, 600, 0.0f, 1.0f));// temp
 			context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
-			
 			context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 			context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.3f, 0.45f, 1.0f));
+
 		}
 
 		/// <summary>
@@ -131,12 +152,6 @@ namespace TinyOculusSharpDxDemo
 			public Vector4 light2Pos;		// light2 position in model coords
 		}
 
-		private struct _DebugVertexShaderConst
-		{
-			public Matrix wvpMat;		// word view projection matrix
-			public Vector4 Param;			// general parameter(s)
-		}
-
 		#endregion // private types
 
 		#region private members
@@ -145,10 +160,9 @@ namespace TinyOculusSharpDxDemo
 		DrawResourceRepository m_repository = null;
 
 		Buffer m_vcBuf = null;
-		Buffer m_dbgVcBuf = null;
 		Buffer m_pcBuf = null;
-		Buffer m_boneBuf = null;
-		Matrix[] m_tmpBoneMatrices = new Matrix[MaxBoneMatrices];
+		RasterizerState m_rasterizerState = null;
+		DepthStencilState m_depthStencilState = null;
 
 		#endregion // private members
 

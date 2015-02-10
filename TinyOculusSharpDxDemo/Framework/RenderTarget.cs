@@ -15,9 +15,11 @@ namespace TinyOculusSharpDxDemo
 	/// </summary>
 	public class RenderTarget : ResourceBase
 	{
+		public ShaderResourceView ShaderResourceView { get; set; }
 		public Texture2D TargetTexture { get; set; }
 		public DepthStencilView DepthStencilView { get; set; }
 		public RenderTargetView TargetView { get; set; }
+		//public int Width { get; set; }
 
 		public RenderTarget(String uid)
 			: base(uid)
@@ -53,6 +55,49 @@ namespace TinyOculusSharpDxDemo
 
 			res.TargetView = new RenderTargetView(d3d.device, backBuffer);
 			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer);
+			res._AddDisposable(res.TargetView);
+			res._AddDisposable(res.DepthStencilView);
+
+			return res;
+		}
+
+		public static RenderTarget CreateRenderTarget(DrawSystem.D3DData d3d, string name, int width, int height)
+		{
+			var res = new RenderTarget(name);
+
+			var backBuffer = new Texture2D(d3d.device, new Texture2DDescription()
+			{
+				Format = Format.R8G8B8A8_UNorm,
+				ArraySize = 1,
+				MipLevels = 1,
+				Width = width,
+				Height = height,
+				SampleDescription = new SampleDescription(1, 0),
+				Usage = ResourceUsage.Default,
+				BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
+				CpuAccessFlags = CpuAccessFlags.None,
+				OptionFlags = ResourceOptionFlags.None
+			});
+
+			var depthBuffer = new Texture2D(d3d.device, new Texture2DDescription()
+			{
+				Format = Format.D32_Float_S8X24_UInt,
+				ArraySize = 1,
+				MipLevels = 1,
+				Width = width,
+				Height = height,
+				SampleDescription = new SampleDescription(1, 0),
+				Usage = ResourceUsage.Default,
+				BindFlags = BindFlags.DepthStencil,
+				CpuAccessFlags = CpuAccessFlags.None,
+				OptionFlags = ResourceOptionFlags.None
+			});
+
+			res.ShaderResourceView = new ShaderResourceView(d3d.device, backBuffer);
+			res.TargetTexture = backBuffer;
+			res.TargetView = new RenderTargetView(d3d.device, backBuffer);
+			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer);
+			res._AddDisposable(res.ShaderResourceView);
 			res._AddDisposable(res.TargetView);
 			res._AddDisposable(res.DepthStencilView);
 
