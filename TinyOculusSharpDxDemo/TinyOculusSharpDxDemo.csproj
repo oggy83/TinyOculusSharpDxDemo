@@ -83,6 +83,8 @@
     <Compile Include="Framework\Effect.cs" />
     <Compile Include="Framework\FpsCounter.cs" />
     <Compile Include="Framework\IDrawPassCtrl.cs" />
+    <Compile Include="HmdDevice.cs" />
+    <Compile Include="HmdSystem.cs" />
     <Compile Include="LibOVR.cs" />
     <Compile Include="Framework\MathUtil.cs" />
     <Compile Include="MyForm.cs">

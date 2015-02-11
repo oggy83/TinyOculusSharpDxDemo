@@ -112,6 +112,7 @@ namespace TinyOculusSharpDxDemo
 			public Device device;
 			public DeviceContext context;
 			public SwapChain swapChain;
+			public IntPtr hWnd;
 		}
 
 		public struct MeshData

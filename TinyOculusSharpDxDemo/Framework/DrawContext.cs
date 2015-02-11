@@ -21,7 +21,7 @@ namespace TinyOculusSharpDxDemo
 	/// </summary>
 	public class DrawContext : IDisposable
 	{
-		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, CRef<LibOVR.ovrHmdDesc> hmd)
+		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd)
 		{
 			m_d3d = d3d;
 			m_repository = repository;
@@ -31,50 +31,14 @@ namespace TinyOculusSharpDxDemo
 			m_modelPassCtrl = new DrawModelPassCtrl(m_d3d, m_repository);
 			m_fePassCtrl = new DrawFrontendPassCtrl(m_d3d, m_repository);
 
-
 			// Create render targets for each HMD eye
-			m_eyeRenderTargetSizeArray = new LibOVR.ovrSizei[2];
-			m_eyeRenderViewportArray = new LibOVR.ovrRecti[2];
-			var eyeTypes = new LibOVR.ovrEyeType[2] { LibOVR.ovrEyeType.Left, LibOVR.ovrEyeType.Right };
+			var sizeArray = hmd.EyeResolutions;
 			var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
 			for (int index = 0; index < 2; ++index)
 			{
-				m_eyeRenderTargetSizeArray[index] = LibOVR.ovrHmd_GetFovTextureSize(hmd.Ptr, eyeTypes[index], hmd.Value.DefaultEyeFov[index], 1.0f);
-				var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], m_eyeRenderTargetSizeArray[index].w, m_eyeRenderTargetSizeArray[index].h);
+				var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
 				m_repository.AddResource(renderTarget);
-
-				m_eyeRenderViewportArray[index].Pos.x = 0;
-				m_eyeRenderViewportArray[index].Pos.y = 0;
-				m_eyeRenderViewportArray[index].Size = m_eyeRenderTargetSizeArray[index];
 			}
-			
-			var apiConfig = new LibOVR.ovrRenderAPIConfig();
-			apiConfig.Header.API = LibOVR.ovrRenderAPIType.D3D11;
-			apiConfig.Header.BackBufferSize = hmd.Value.Resolution;
-			apiConfig.Header.Multisample = 1;
-			apiConfig.Device = m_d3d.device.NativePointer;
-			apiConfig.DeviceContext = m_d3d.context.NativePointer;
-			apiConfig.BackBufferRT = m_repository.GetDefaultRenderTarget().TargetView.NativePointer;
-			apiConfig.SwapChain = m_d3d.swapChain.NativePointer;
-
-			uint distCaps =
-					(uint)LibOVR.ovrDistortionCaps.Chromatic
-					| (uint)LibOVR.ovrDistortionCaps.Vigette
-					| (uint)LibOVR.ovrDistortionCaps.TimeWarp
-					| (uint)LibOVR.ovrDistortionCaps.Overdrive;
-			//| (uint)LibOVR.ovrDistortionCaps.ComputeShader;
-
-			m_eyeDescArray = new LibOVR.ovrEyeRenderDesc[2];
-
-			unsafe
-			{
-				if (!LibOVR.ovrHmd_ConfigureRendering(hmd.Ptr, (IntPtr)(&apiConfig), distCaps, hmd.Value.DefaultEyeFov, m_eyeDescArray))
-				{
-					Debug.Fail("failed to ovrHmd_ConfigureRendering");
-				}
-			}
-
-		
 
 		}
 
@@ -142,17 +106,7 @@ namespace TinyOculusSharpDxDemo
 			m_modelPassCtrl.StartPass(leftEyeRT);// @todo temporary code
 			m_modelPassCtrl.StartPass(rightEyeRT);// @todo temporary code
 
-			LibOVR.ovrFrameTiming timing = LibOVR.ovrHmd_BeginFrame(m_hmd.Ptr, 0);
-
-			var state = new LibOVR.ovrHSWDisplayState();
-			unsafe
-			{
-				LibOVR.ovrHmd_GetHSWDisplayState(m_hmd.Ptr, (IntPtr)(&state));
-			}
-			if (state.Displayed && LibOVR.ovrHmd_DismissHSWDisplay(m_hmd.Ptr))
-			{
-				// start draw model
-			}
+			m_hmd.BeginScene();
 		}
 
 		/// <summary>
@@ -160,27 +114,10 @@ namespace TinyOculusSharpDxDemo
 		/// </summary>
 		public void EndScene()
 		{
-			var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset }; 
-			var outEyePoses = new LibOVR.ovrPosef[2];
-			LibOVR.ovrHmd_GetEyePoses(m_hmd.Ptr, 0, hmdToEyeOffsets, outEyePoses, IntPtr.Zero);
-
 			var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
 			var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
-
-			var eyeTextures = new LibOVR.ovrTexture[2];
-			eyeTextures[0].Header.API = LibOVR.ovrRenderAPIType.D3D11;
-			eyeTextures[0].Header.TextureSize = m_eyeRenderTargetSizeArray[0];
-			eyeTextures[0].Header.RenderViewport = m_eyeRenderViewportArray[0];
-			eyeTextures[0].Texture = leftEyeRT.TargetTexture.NativePointer;
-			eyeTextures[0].View = leftEyeRT.ShaderResourceView.NativePointer;
-			eyeTextures[1].Header.API = LibOVR.ovrRenderAPIType.D3D11;
-			eyeTextures[1].Header.TextureSize = m_eyeRenderTargetSizeArray[1];
-			eyeTextures[1].Header.RenderViewport = m_eyeRenderViewportArray[1];
-			eyeTextures[1].Texture = rightEyeRT.TargetTexture.NativePointer;
-			eyeTextures[1].View = rightEyeRT.ShaderResourceView.NativePointer;
-
-			LibOVR.ovrHmd_EndFrame(m_hmd.Ptr, outEyePoses, eyeTextures);
-
+			m_hmd.EndScene(leftEyeRT, rightEyeRT);
+	
 			//int syncInterval = 0;// immediately
 			//m_d3d.swapChain.Present(syncInterval, PresentFlags.None);
 		}
@@ -191,11 +128,8 @@ namespace TinyOculusSharpDxDemo
 		DrawResourceRepository m_repository = null;
 		DrawCommand m_lastCommand;
 		DrawSystem.WorldData m_worldData;
-		CRef<LibOVR.ovrHmdDesc> m_hmd = null;
-		LibOVR.ovrEyeRenderDesc[] m_eyeDescArray= null;
-		LibOVR.ovrSizei[] m_eyeRenderTargetSizeArray = null;
-		LibOVR.ovrRecti[] m_eyeRenderViewportArray = null;
-
+		HmdDevice m_hmd = null;
+		
 		DrawModelPassCtrl m_modelPassCtrl = null;
 		DrawFrontendPassCtrl m_fePassCtrl = null;
 

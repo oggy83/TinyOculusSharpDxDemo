@@ -23,39 +23,23 @@ namespace TinyOculusSharpDxDemo
 		[STAThread]
 		static void Main()
 		{
-			if (!LibOVR.ovr_Initialize())
-			{
-				MessageBox.Show("Failed to initialize LibOVR.");
-				return;
-			}
+			// init oculus rift hmd system
+			HmdSystem.Initialize();
+			var hmdSys = HmdSystem.GetInstance();
+			var hmd = hmdSys.DetectHmd();
 
-			string version = CRef<string>.FromCharPtr(LibOVR.ovr_GetVersionString()).Value;
-			int detect = LibOVR.ovrHmd_Detect();
-
-			var hmd = CRef<LibOVR.ovrHmdDesc>.FromPtr(LibOVR.ovrHmd_Create(0));
-			if (hmd == null)
-			{
-				MessageBox.Show("Oculus Rift not detected.");
-				return;
-			}
-
-			bool isWindow = (hmd.Value.HmdCaps & (int)LibOVR.ovrHmdCaps.ExtendDesktop) == 1 ? false : true;
-			var rect = new LibOVR.ovrRecti
-			{
-				Pos = hmd.Value.WindowPos,
-				Size = hmd.Value.Resolution,
-			};
+			Size resolution = hmd.Resolution;
 
 			var form = new MyForm();
-			form.ClientSize = new Size(rect.Size.w, rect.Size.h);
+			form.ClientSize = resolution;
 
 			// Create Device & SwapChain
 			var desc = new SwapChainDescription()
 			{
 				BufferCount = 2,
 				ModeDescription =
-					new ModeDescription(rect.Size.w, rect.Size.h, new Rational(0, 1), Format.R8G8B8A8_UNorm),
-				IsWindowed = isWindow,
+					new ModeDescription(resolution.Width, resolution.Height, new Rational(0, 1), Format.R8G8B8A8_UNorm),
+				IsWindowed = hmd.IsEnableWindowMode,
 				OutputHandle = form.GetRenderTarget().Handle,
 				SampleDescription = new SampleDescription(1, 0),
 				SwapEffect = SwapEffect.Sequential,
@@ -74,9 +58,7 @@ namespace TinyOculusSharpDxDemo
 			scene.Dispose();
 			device.Dispose();
 			swapChain.Dispose();
-
-			LibOVR.ovrHmd_Destroy(hmd.Ptr);
-			LibOVR.ovr_Shutdown();
+			HmdSystem.Dispose();
 		}
 
 	}

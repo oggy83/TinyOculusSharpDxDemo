@@ -24,17 +24,17 @@ namespace TinyOculusSharpDxDemo
 
 		private static DrawSystem s_singleton = null;
 
-		static public void Initialize(Device device, SwapChain swapChain, CRef<LibOVR.ovrHmdDesc> hmd)
+		static public void Initialize(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd)
 		{
-			s_singleton = new DrawSystem(device, swapChain, hmd);
-			timeBeginPeriod(1);// for Sleep() precision
+			s_singleton = new DrawSystem(hWnd, device, swapChain, hmd);
 		}
 
 		static public void Dispose()
 		{
-			timeEndPeriod(1);
+			s_singleton.m_hmd.Detach();
 			s_singleton.m_context.Dispose();
 			s_singleton.m_repository.Dispose();
+			timeEndPeriod(1);
 			s_singleton = null;
 		}
 
@@ -116,15 +116,17 @@ namespace TinyOculusSharpDxDemo
 
 		#endregion // properties
 
-		private DrawSystem(Device device, SwapChain swapChain, CRef<LibOVR.ovrHmdDesc> hmd)
+		private DrawSystem(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd)
         {
+			timeBeginPeriod(1);// for Sleep() precision
 			m_d3d = new D3DData
 			{
 				device = device,
 				context = device.ImmediateContext,
 				swapChain = swapChain,
+				hWnd = hWnd,
 			};
-
+			
 			AmbientColor = new Color3(0, 0, 0);
 			m_world.dirLight.Direction = new Vector3(0, 1, 0);
 			m_world.dirLight.Color = new Color3(1, 1, 1);
@@ -135,7 +137,8 @@ namespace TinyOculusSharpDxDemo
 			m_repository = new DrawResourceRepository(m_d3d);
 			m_context = new DrawContext(m_d3d, m_repository, hmd);
 
-			
+			m_hmd = hmd;
+			m_hmd.Attach(m_d3d, m_repository.GetDefaultRenderTarget());
 		}
 
 		public void SetDirectionalLight(DirectionalLightData light)
@@ -195,6 +198,8 @@ namespace TinyOculusSharpDxDemo
 		private DrawCommandBuffer m_commandBuffer = null;
 
 		private DrawContext m_context = null;
+
+		private HmdDevice m_hmd = null;
 
 		#endregion // private members
 

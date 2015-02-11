@@ -7,6 +7,7 @@ using SharpDX.Windows;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace TinyOculusSharpDxDemo
 {
@@ -19,7 +20,13 @@ namespace TinyOculusSharpDxDemo
 		public Texture2D TargetTexture { get; set; }
 		public DepthStencilView DepthStencilView { get; set; }
 		public RenderTargetView TargetView { get; set; }
-		//public int Width { get; set; }
+		public Size Resolution 
+		{
+			get
+			{
+				return new Size(TargetTexture.Description.Width, TargetTexture.Description.Height);
+			}
+		}
 
 		public RenderTarget(String uid)
 			: base(uid)
@@ -55,6 +62,8 @@ namespace TinyOculusSharpDxDemo
 
 			res.TargetView = new RenderTargetView(d3d.device, backBuffer);
 			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer);
+			res.ShaderResourceView = null;
+			res.TargetTexture = backBuffer;
 			res._AddDisposable(res.TargetView);
 			res._AddDisposable(res.DepthStencilView);
 
