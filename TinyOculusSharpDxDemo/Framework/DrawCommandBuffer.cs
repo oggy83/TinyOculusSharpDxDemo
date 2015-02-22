@@ -7,6 +7,14 @@ namespace TinyOculusSharpDxDemo
 {
 	public class DrawCommandBuffer
 	{
+		public IEnumerable<DrawCommand> Commands
+		{
+			get
+			{
+				return m_list;
+			}
+		}
+
 		public DrawCommandBuffer(int capacity)
 		{
 			m_list = new List<DrawCommand>(capacity);
@@ -20,14 +28,6 @@ namespace TinyOculusSharpDxDemo
 		public void Clear()
 		{
 			m_list.Clear();
-		}
-
-		public void Draw(DrawContext context)
-		{
-			foreach (var command in m_list)
-			{
-				context.Draw(command);
-			}
 		}
 
 		public void Sort()

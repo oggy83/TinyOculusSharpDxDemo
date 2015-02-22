@@ -101,7 +101,6 @@ namespace TinyOculusSharpDxDemo
 		public struct WorldData
 		{
 			public DrawSystem.CameraData camera;
-			public Matrix proj;
 			public Color3 ambientCol;
 			public DrawSystem.DirectionalLightData dirLight;
 			public DrawSystem.PointLightData[] pointLights;

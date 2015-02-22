@@ -68,22 +68,6 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		/// <summary>
-		/// Transform for View => Screen
-		/// 
-		/// </summary>
-		public Matrix ProjectionMatrix
-		{
-			get
-			{
-				return m_world.proj;
-			}
-			set
-			{
-				m_world.proj = value;
-			}
-		}
-
 		public Color3 AmbientColor
 		{
 			get
@@ -140,6 +124,8 @@ namespace TinyOculusSharpDxDemo
 			m_bStereoRendering = bStereoRendering;
 			m_hmd = hmd;
 			m_hmd.Attach(m_d3d, m_repository.GetDefaultRenderTarget());
+
+			
 		}
 
 		public void SetDirectionalLight(DirectionalLightData light)
@@ -173,16 +159,16 @@ namespace TinyOculusSharpDxDemo
 			m_context.BeginScene(data);
 
 			m_commandBuffer.Sort();
-			m_commandBuffer.Draw(m_context);
+			m_context.Draw(m_commandBuffer);
 			m_commandBuffer.Clear();
 
 			m_context.EndScene();
 			perfFpsCounter.EndFrame();
 			int deltaTime = perfFpsCounter.GetDeltaTime();
-			int sleepTime = (int)Math.Max(0, 1000.0f / 60.0f - deltaTime);// 60FPS
+			int sleepTime = (int)Math.Max(0, 1000.0f / 75.0f - deltaTime);// 75FPS
 			if (sleepTime > 0)
 			{
-				Thread.Sleep(sleepTime);
+				//Thread.Sleep(sleepTime);
 			}
 			dtFpsCounter.EndFrame();
 			dtFpsCounter.BeginFrame();

@@ -55,44 +55,49 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// Execute DrawCommand
 		/// </summary>
-		/// <param name="command"></param>
-		public void Draw(DrawCommand command)
+		/// <param name="commandBuffer">sorted draw command list</param>
+		public void Draw(DrawCommandBuffer commandBuffer)
 		{
-			if (command.m_type == DrawCommandTypes.Invalid)
+			RenderTarget[] renderTargets;
+			if (m_bStereoRendering)
 			{
-				// nothing
-				return;
+				renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+			}
+			else
+			{
+				renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
 			}
 
-			
-			// Select Render Target
-			IDrawPassCtrl passCtrl = null;
-			switch (command.m_type)
-			{
-				case DrawCommandTypes.DrawModel:
-					Debug.Assert(false, "fix temporary code!!(85line)");
-					passCtrl = m_modelPassCtrl;
-					break;
-
-				case DrawCommandTypes.DrawText:
-					passCtrl = m_fePassCtrl;
-					break;
-			}
-
-			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
 			foreach (var renderTarget in renderTargets)
 			{
-				if (m_lastCommand.m_type != command.m_type)
-				{
-					//m_modelPassCtrl.StartPath();
-					passCtrl.StartPass(renderTarget);
-				}
+				m_modelPassCtrl.StartPass(renderTarget);
 
-				// Draw
-				passCtrl.ExecuteCommand(command, m_worldData);
+				foreach (var command in commandBuffer.Commands)
+				{
+					if (command.m_type == DrawCommandTypes.Invalid)
+					{
+						// nothing
+						return;
+					}
+
+					// Select Render Target
+					IDrawPassCtrl passCtrl = null;
+					switch (command.m_type)
+					{
+						case DrawCommandTypes.DrawModel:
+							passCtrl = m_modelPassCtrl;
+							break;
+
+						case DrawCommandTypes.DrawText:
+							passCtrl = m_fePassCtrl;
+							break;
+					}
+
+				
+					passCtrl.ExecuteCommand(command, m_worldData);
+					m_lastCommand = command;
+				}
 			}
-		
-			m_lastCommand = command;
 		}
 
 		/// <summary>
@@ -106,16 +111,7 @@ namespace TinyOculusSharpDxDemo
 
 			if (m_bStereoRendering)
 			{
-				var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
-				var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
-				m_modelPassCtrl.StartPass(leftEyeRT);// @todo temporary code
-				m_modelPassCtrl.StartPass(rightEyeRT);// @todo temporary code
-
 				m_hmd.BeginScene();
-			}
-			else
-			{
-				m_modelPassCtrl.StartPass(m_repository.GetDefaultRenderTarget());
 			}
 		}
 

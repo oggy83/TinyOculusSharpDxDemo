@@ -28,7 +28,7 @@ namespace TinyOculusSharpDxDemo
 
 		#region DrawModel
 
-		public static DrawCommand CreateDrawModelCommand(Matrix worldTrans, DrawSystem.MeshData mesh, Matrix[] boneMatrices)
+		public static DrawCommand CreateDrawModelCommand(Matrix worldTrans, DrawSystem.MeshData mesh)
 		{
 			return new DrawCommand()
 			{
@@ -37,7 +37,6 @@ namespace TinyOculusSharpDxDemo
 				{
 					m_worldTransform = worldTrans,
 					m_mesh = mesh,
-					m_boneMatrices = boneMatrices,
 				}
 			};
 		}
@@ -78,11 +77,6 @@ namespace TinyOculusSharpDxDemo
 	{
 		public Matrix m_worldTransform;
 		public DrawSystem.MeshData m_mesh;
-
-		/// <summary>
-		/// bone matrix array (model coords)
-		/// </summary>
-		public Matrix[] m_boneMatrices;
 	}
 
 	/// <summary>

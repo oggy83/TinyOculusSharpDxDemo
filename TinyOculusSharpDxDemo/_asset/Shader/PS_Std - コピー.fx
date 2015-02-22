@@ -16,13 +16,26 @@ cbuffer cbMain : register(b0)
 };
 
 
+// diffuse texture1
+Texture2D g_Diffuse1Tex : register(t0);
+SamplerState g_Diffuse1Sampler : register(s0);
+
+// bump texture1
+Texture2D g_Bump1Tex : register(t1);
+SamplerState g_Bump1Sampler : register(s1);
+
 struct PS_INPUT
 {
 	float4 Position : SV_POSITION;		// position in screen space
 	float4 WorldPosition : POSITION;	// position in world space
-	//float3 Normal : NORMAL;				// normal in world space
-	//float3 Tangent : TANGENT0;			// tangent in world space 
-	float4 Color : COLOR;
+	float2 UV1 : TEXCOORD0;				// texture uv
+	float3 Normal : NORMAL;				// normal in world space
+	float3 Tangent : TANGENT0;			// tangent in world space 
+	/*
+	float3 EyeDir : TEXCOORD1;
+	float3 Light1Dir : TEXCOORD2;
+	float4 Light2Pos : TEXCOORD3;
+	*/
 };
 
 struct PS_OUTPUT
@@ -35,7 +48,6 @@ PS_OUTPUT main(PS_INPUT In)
 {
 	PS_OUTPUT Out;
 
-	/*
 	float3 tmpLight1Dir = -g_light1Dir;
 	float3 Light1Dir = normalize(-g_light1Dir);
 
@@ -69,9 +81,6 @@ PS_OUTPUT main(PS_INPUT In)
 
 	Out.Color.rgb = diffCol.rgb + specCol;
 	Out.Color.a = diffCol.a;
-	*/
-
-	Out.Color = In.Color;
 
 	// display normal map
 	//Out.Color.rgb = (Normal + 1) * 0.5f;

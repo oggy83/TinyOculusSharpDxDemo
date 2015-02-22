@@ -45,9 +45,6 @@ namespace TinyOculusSharpDxDemo
 
 			// Init settings
 			var context = m_d3d.context;
-			int width = m_d3d.swapChain.Description.ModeDescription.Width / 2;// @todo yasut
-			int height = m_d3d.swapChain.Description.ModeDescription.Height;
-			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
 			context.Rasterizer.State = m_rasterizerState;
 			context.OutputMerger.DepthStencilState = m_depthStencilState;
 			m_d3d.device.QueryInterface<Device1>().MaximumFrameLatency = 1;
@@ -65,10 +62,18 @@ namespace TinyOculusSharpDxDemo
 		public void StartPass(RenderTarget renderTarget)
 		{
 			var context = m_d3d.context;
+			//int width = m_d3d.swapChain.Description.ModeDescription.Width / 2;// @todo yasut
+			int width = renderTarget.Resolution.Width;
+			int height = renderTarget.Resolution.Height;
+			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
 			context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
 			context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 			context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.3f, 0.45f, 1.0f));
 
+			// update projection matrix
+			Single aspect = (float)width / (float)height;
+			Single fov = (Single)Math.PI / 4;
+			m_proj = Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
 		}
 
 		/// <summary>
@@ -89,7 +94,9 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.context.PixelShader.Set(effect.PixelShader);
 
 			// update matrix
-			var wvpMat = commandData.m_worldTransform * world.camera.GetViewMatrix() * world.proj;
+		
+
+			var wvpMat = commandData.m_worldTransform * world.camera.GetViewMatrix() * m_proj;
 			var context = m_d3d.context;
 
 			var vdata = new _VertexShaderConst()
@@ -97,7 +104,6 @@ namespace TinyOculusSharpDxDemo
 				// hlsl is column-major memory layout, so we must transpose matrix
 				wvpMat = Matrix.Transpose(wvpMat),
 				worldMat = Matrix.Transpose(commandData.m_worldTransform),
-				isEnableSkinning = commandData.m_boneMatrices != null,
 			};
 
 			context.UpdateSubresource(ref vdata, m_vcBuf);
@@ -107,11 +113,11 @@ namespace TinyOculusSharpDxDemo
 			{
 				ambientCol = new Color4(world.ambientCol),
 				light1Col = new Color4(world.dirLight.Color),
-				light2Col = new Color4(world.pointLights[0].Color),
-				lightRange = new Vector4(world.pointLights[0].Range, 0, 0, 0),
+				//light2Col = new Color4(world.pointLights[0].Color),
+				//lightRange = new Vector4(world.pointLights[0].Range, 0, 0, 0),
 				cameraPos = new Vector4(world.camera.eye, 1.0f),
 				light1Dir = new Vector4(world.dirLight.Direction, 0.0f),
-				light2Pos = world.pointLights[0].Position,
+				//light2Pos = world.pointLights[0].Position,
 			};
 			
 			context.UpdateSubresource(ref pdata, m_pcBuf);
@@ -158,6 +164,7 @@ namespace TinyOculusSharpDxDemo
 
 		DrawSystem.D3DData m_d3d;
 		DrawResourceRepository m_repository = null;
+		Matrix m_proj;
 
 		Buffer m_vcBuf = null;
 		Buffer m_pcBuf = null;
@@ -177,11 +184,11 @@ namespace TinyOculusSharpDxDemo
  				new InputElement[]
 				{
 					new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
-					new InputElement("NORMAL", 0, Format.R32G32B32_Float, 16, 0),
-					new InputElement("TEXCOORD", 0, Format.R32G32_Float, 28, 0),
-					new InputElement("TANGENT", 0, Format.R32G32B32_Float, 0, 1),
-					new InputElement("BONEINDEX", 0, Format.R32G32B32A32_SInt, 0, 2),
-					new InputElement("BONEWEIGHT", 0, Format.R32G32B32A32_Float, 16, 2),
+					new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0),
+					//new InputElement("NORMAL", 0, Format.R32G32B32_Float, 16, 0),
+					//new InputElement("TANGENT", 0, Format.R32G32B32_Float, 0, 1),
+					//new InputElement("BONEINDEX", 0, Format.R32G32B32A32_SInt, 0, 2),
+					//new InputElement("BONEWEIGHT", 0, Format.R32G32B32A32_Float, 16, 2),
 				},
 				"Shader/VS_Std.fx",
 				"Shader/PS_Std.fx");
