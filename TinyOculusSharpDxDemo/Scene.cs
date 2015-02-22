@@ -20,9 +20,9 @@ namespace TinyOculusSharpDxDemo
 		private FpsCounter m_dtFpsCounter;
 		private FpsCounter m_perfFpsCounter;
 
-        public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd)
+        public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd, bool bStereoRendering)
 		{
-			DrawSystem.Initialize(renderTarget.Handle, device, swapChain, hmd);
+			DrawSystem.Initialize(renderTarget.Handle, device, swapChain, hmd, bStereoRendering);
 			TextSystem.Initialize(renderTarget);
 			//InputSystem.Initialize(renderTarget);
 			//CameraSystem.Initialize();

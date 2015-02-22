@@ -75,6 +75,8 @@
     <Compile Include="Framework\DrawCommandBuffer.cs" />
     <Compile Include="Framework\DrawContext.cs" />
     <Compile Include="Framework\DrawFrontendPassCtrl.cs" />
+    <Compile Include="Framework\DrawModel.cs" />
+    <Compile Include="Framework\DrawModel.DebugShape.cs" />
     <Compile Include="Framework\DrawModelPassCtrl.cs" />
     <Compile Include="Framework\DrawResourceRepository.cs" />
     <Compile Include="Framework\DrawSystem.cs" />

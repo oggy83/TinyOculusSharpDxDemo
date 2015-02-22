@@ -92,7 +92,11 @@ namespace TinyOculusSharpDxDemo
 				Application.Exit();
 			}
 
-			uint hmdCaps = (uint)LibOVR.ovrHmdCaps.LowPersistence | (uint)LibOVR.ovrHmdCaps.DynamicPrediction;
+			uint hmdCaps = 
+				(uint)LibOVR.ovrHmdCaps.LowPersistence
+				//| (uint)LibOVR.ovrHmdCaps.NoMirrorToWindow
+				//| (uint)LibOVR.ovrHmdCaps.NoVSync
+				| (uint)LibOVR.ovrHmdCaps.DynamicPrediction;
 			LibOVR.ovrHmd_SetEnabledCaps(m_handle.Ptr, hmdCaps);
 
 			uint trackingCaps = (uint)LibOVR.ovrTrackingCaps.Orientation | (uint)LibOVR.ovrTrackingCaps.MagYawCorrection
@@ -190,7 +194,7 @@ namespace TinyOculusSharpDxDemo
 			};
 		}
 
-		public/*private*/ CRef<LibOVR.ovrHmdDesc> m_handle;
+		private CRef<LibOVR.ovrHmdDesc> m_handle;
 		private LibOVR.ovrEyeRenderDesc[] m_eyeDescArray = null;
 	}
 }

@@ -24,9 +24,9 @@ namespace TinyOculusSharpDxDemo
 
 		private static DrawSystem s_singleton = null;
 
-		static public void Initialize(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd)
+		static public void Initialize(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering)
 		{
-			s_singleton = new DrawSystem(hWnd, device, swapChain, hmd);
+			s_singleton = new DrawSystem(hWnd, device, swapChain, hmd, bStereoRendering);
 		}
 
 		static public void Dispose()
@@ -116,7 +116,7 @@ namespace TinyOculusSharpDxDemo
 
 		#endregion // properties
 
-		private DrawSystem(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd)
+		private DrawSystem(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering)
         {
 			timeBeginPeriod(1);// for Sleep() precision
 			m_d3d = new D3DData
@@ -135,8 +135,9 @@ namespace TinyOculusSharpDxDemo
 			m_commandBuffer = new DrawCommandBuffer(capacity);
 
 			m_repository = new DrawResourceRepository(m_d3d);
-			m_context = new DrawContext(m_d3d, m_repository, hmd);
+			m_context = new DrawContext(m_d3d, m_repository, hmd, bStereoRendering);
 
+			m_bStereoRendering = bStereoRendering;
 			m_hmd = hmd;
 			m_hmd.Attach(m_d3d, m_repository.GetDefaultRenderTarget());
 		}
@@ -200,6 +201,8 @@ namespace TinyOculusSharpDxDemo
 		private DrawContext m_context = null;
 
 		private HmdDevice m_hmd = null;
+
+		private bool m_bStereoRendering;
 
 		#endregion // private members
 

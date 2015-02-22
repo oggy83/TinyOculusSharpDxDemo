@@ -21,25 +21,28 @@ namespace TinyOculusSharpDxDemo
 	/// </summary>
 	public class DrawContext : IDisposable
 	{
-		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd)
+		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd, bool bStereoRendering)
 		{
 			m_d3d = d3d;
 			m_repository = repository;
 			m_lastCommand.m_type = DrawCommandTypes.Invalid;
 			m_hmd = hmd;
+			m_bStereoRendering = bStereoRendering;
 			
 			m_modelPassCtrl = new DrawModelPassCtrl(m_d3d, m_repository);
 			m_fePassCtrl = new DrawFrontendPassCtrl(m_d3d, m_repository);
 
-			// Create render targets for each HMD eye
-			var sizeArray = hmd.EyeResolutions;
-			var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
-			for (int index = 0; index < 2; ++index)
+			if (bStereoRendering)
 			{
-				var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
-				m_repository.AddResource(renderTarget);
+				// Create render targets for each HMD eye
+				var sizeArray = hmd.EyeResolutions;
+				var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
+				for (int index = 0; index < 2; ++index)
+				{
+					var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
+					m_repository.AddResource(renderTarget);
+				}
 			}
-
 		}
 
 		
@@ -101,12 +104,19 @@ namespace TinyOculusSharpDxDemo
 			m_lastCommand = new DrawCommand();
 			m_worldData = data;
 
-			var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
-			var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
-			m_modelPassCtrl.StartPass(leftEyeRT);// @todo temporary code
-			m_modelPassCtrl.StartPass(rightEyeRT);// @todo temporary code
+			if (m_bStereoRendering)
+			{
+				var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
+				var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
+				m_modelPassCtrl.StartPass(leftEyeRT);// @todo temporary code
+				m_modelPassCtrl.StartPass(rightEyeRT);// @todo temporary code
 
-			m_hmd.BeginScene();
+				m_hmd.BeginScene();
+			}
+			else
+			{
+				m_modelPassCtrl.StartPass(m_repository.GetDefaultRenderTarget());
+			}
 		}
 
 		/// <summary>
@@ -114,24 +124,30 @@ namespace TinyOculusSharpDxDemo
 		/// </summary>
 		public void EndScene()
 		{
-			var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
-			var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
-			m_hmd.EndScene(leftEyeRT, rightEyeRT);
-	
-			//int syncInterval = 0;// immediately
-			//m_d3d.swapChain.Present(syncInterval, PresentFlags.None);
+			if (m_bStereoRendering)
+			{
+				var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
+				var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
+				m_hmd.EndScene(leftEyeRT, rightEyeRT);
+			}
+			else
+			{
+				int syncInterval = 0;// immediately
+				m_d3d.swapChain.Present(syncInterval, PresentFlags.None);
+			}
 		}
 
 		#region private members
 
-		DrawSystem.D3DData m_d3d;
-		DrawResourceRepository m_repository = null;
-		DrawCommand m_lastCommand;
-		DrawSystem.WorldData m_worldData;
-		HmdDevice m_hmd = null;
+		private DrawSystem.D3DData m_d3d;
+		private DrawResourceRepository m_repository = null;
+		private DrawCommand m_lastCommand;
+		private DrawSystem.WorldData m_worldData;
+		private HmdDevice m_hmd = null;
+		private bool m_bStereoRendering;
 		
-		DrawModelPassCtrl m_modelPassCtrl = null;
-		DrawFrontendPassCtrl m_fePassCtrl = null;
+		private DrawModelPassCtrl m_modelPassCtrl = null;
+		private DrawFrontendPassCtrl m_fePassCtrl = null;
 
 		#endregion // private members
 		

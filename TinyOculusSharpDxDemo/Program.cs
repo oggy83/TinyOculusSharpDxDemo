@@ -23,12 +23,21 @@ namespace TinyOculusSharpDxDemo
 		[STAThread]
 		static void Main()
 		{
+			bool bStereoRendering = false;// change to 'false' due to non-stereo rendering for debug
+
 			// init oculus rift hmd system
 			HmdSystem.Initialize();
 			var hmdSys = HmdSystem.GetInstance();
 			var hmd = hmdSys.DetectHmd();
 
 			Size resolution = hmd.Resolution;
+			if (!bStereoRendering)
+			{
+				//resolution.Width = 1920;// Full HD
+				//resolution.Height = 1080;
+				resolution.Width = 1280;
+				resolution.Height = 720;
+			}
 
 			var form = new MyForm();
 			form.ClientSize = resolution;
@@ -51,7 +60,7 @@ namespace TinyOculusSharpDxDemo
 			SwapChain swapChain;
 			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, desc, out device, out swapChain);
 
-			var scene = new Scene(device, swapChain, form.GetRenderTarget(), hmd);
+			var scene = new Scene(device, swapChain, form.GetRenderTarget(), hmd, bStereoRendering);
 			RenderLoop.Run(form, () => { scene.RenderFrame(); });
 
 			// Release
