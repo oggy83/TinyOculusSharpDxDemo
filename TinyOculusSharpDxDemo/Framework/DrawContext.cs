@@ -59,18 +59,25 @@ namespace TinyOculusSharpDxDemo
 		public void Draw(DrawCommandBuffer commandBuffer)
 		{
 			RenderTarget[] renderTargets;
+			Matrix[] eyeOffset;
 			if (m_bStereoRendering)
 			{
 				renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+				eyeOffset = m_hmd.GetEyePoses();
 			}
 			else
 			{
 				renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
+				eyeOffset = new[] { Matrix.Identity };
 			}
 
-			foreach (var renderTarget in renderTargets)
+			for (int index = 0; index < renderTargets.Count(); ++index)
 			{
+				var renderTarget = renderTargets[index];
 				m_modelPassCtrl.StartPass(renderTarget);
+
+				DrawSystem.WorldData tmpWorldData = m_worldData;
+				tmpWorldData.camera = tmpWorldData.camera * eyeOffset[index];
 
 				foreach (var command in commandBuffer.Commands)
 				{
@@ -93,8 +100,7 @@ namespace TinyOculusSharpDxDemo
 							break;
 					}
 
-				
-					passCtrl.ExecuteCommand(command, m_worldData);
+					passCtrl.ExecuteCommand(command, tmpWorldData);
 					m_lastCommand = command;
 				}
 			}

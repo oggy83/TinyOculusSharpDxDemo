@@ -94,9 +94,7 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.context.PixelShader.Set(effect.PixelShader);
 
 			// update matrix
-		
-
-			var wvpMat = commandData.m_worldTransform * world.camera.GetViewMatrix() * m_proj;
+			var wvpMat = commandData.m_worldTransform * world.camera * m_proj;
 			var context = m_d3d.context;
 
 			var vdata = new _VertexShaderConst()
@@ -115,7 +113,7 @@ namespace TinyOculusSharpDxDemo
 				light1Col = new Color4(world.dirLight.Color),
 				//light2Col = new Color4(world.pointLights[0].Color),
 				//lightRange = new Vector4(world.pointLights[0].Range, 0, 0, 0),
-				cameraPos = new Vector4(world.camera.eye, 1.0f),
+				cameraPos = new Vector4(world.camera.TranslationVector, 1.0f),
 				light1Dir = new Vector4(world.dirLight.Direction, 0.0f),
 				//light2Pos = world.pointLights[0].Position,
 			};

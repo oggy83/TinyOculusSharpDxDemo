@@ -68,7 +68,7 @@ namespace TinyOculusSharpDxDemo
 
 			// draw
 			var drawSys = DrawSystem.GetInstance();
-			drawSys.Camera = camera;
+			drawSys.Camera = camera.GetViewMatrix();
 
 			// disp fps
 			{
@@ -80,7 +80,7 @@ namespace TinyOculusSharpDxDemo
 
 			m_accTime += dT;
 			float angle = m_accTime % (2.0f * (float)Math.PI);
-			Matrix worldTrans = Matrix.RotationYawPitchRoll(angle, angle, angle) * Matrix.Translation(0.0f, 0.0f, 1.0f);
+			Matrix worldTrans = Matrix.RotationYawPitchRoll(angle, angle, angle) * Matrix.Translation(0.0f, 0.0f, 3.0f);
 			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, m_box.NodeList[0].Mesh));
 
 			drawSys.ProcessDrawCommand(m_dtFpsCounter, m_perfFpsCounter);

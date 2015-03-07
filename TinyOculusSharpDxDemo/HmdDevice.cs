@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Diagnostics;
+using SharpDX;
 
 namespace TinyOculusSharpDxDemo
 {
@@ -128,7 +129,8 @@ namespace TinyOculusSharpDxDemo
 			{
 				if (!LibOVR.ovrHmd_ConfigureRendering(m_handle.Ptr, (IntPtr)(&apiConfig), distCaps, m_handle.Value.DefaultEyeFov, m_eyeDescArray))
 				{
-					Debug.Fail("failed to ovrHmd_ConfigureRendering");
+					MessageBox.Show("failed to ovrHmd_ConfigureRendering");
+					Application.Exit();
 				}
 			}
 
@@ -152,15 +154,31 @@ namespace TinyOculusSharpDxDemo
 			{
 				// start draw model
 			}
+
+			// update poses
+			var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
+			LibOVR.ovrHmd_GetEyePoses(m_handle.Ptr, 0, hmdToEyeOffsets, m_tmpEyePoses, IntPtr.Zero);
+		}
+
+		public Matrix[] GetEyePoses()
+		{
+			var result = new Matrix[2];
+			for (int eyeIndex = 0; eyeIndex < 2; ++eyeIndex)
+			{
+				LibOVR.ovrPosef eyePose = m_tmpEyePoses[eyeIndex];
+
+				var q = new Quaternion(eyePose.Orientation.x, eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w);
+				var v = new Vector3(eyePose.Position.x, eyePose.Position.y, eyePose.Position.z);
+				var M = Matrix.RotationQuaternion(q) * Matrix.Translation(v);
+
+				result[eyeIndex] = M;
+			}
+
+			return result;
 		}
 
 		public void EndScene(RenderTarget leftEyeRenderTarget, RenderTarget rightEyeRenderTarget)
 		{
-			var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
-			var outEyePoses = new LibOVR.ovrPosef[2];
-			LibOVR.ovrHmd_GetEyePoses(m_handle.Ptr, 0, hmdToEyeOffsets, outEyePoses, IntPtr.Zero);
-
-
 			var renderTargets = new RenderTarget[] { leftEyeRenderTarget, rightEyeRenderTarget };
 			var eyeTextures = new LibOVR.ovrTexture[2];
 			for (int index = 0; index < 2; ++index)
@@ -172,7 +190,7 @@ namespace TinyOculusSharpDxDemo
 				eyeTextures[index].View = renderTargets[index].ShaderResourceView.NativePointer;
 			}
 
-			LibOVR.ovrHmd_EndFrame(m_handle.Ptr, outEyePoses, eyeTextures);
+			LibOVR.ovrHmd_EndFrame(m_handle.Ptr, m_tmpEyePoses, eyeTextures);
 		}
 
 		
@@ -196,5 +214,6 @@ namespace TinyOculusSharpDxDemo
 
 		private CRef<LibOVR.ovrHmdDesc> m_handle;
 		private LibOVR.ovrEyeRenderDesc[] m_eyeDescArray = null;
+		private LibOVR.ovrPosef[] m_tmpEyePoses = new LibOVR.ovrPosef[2];
 	}
 }

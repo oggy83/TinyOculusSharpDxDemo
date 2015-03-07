@@ -56,7 +56,7 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// get/set a camera which makes Transform for World => View
 		/// </summary>
-		public CameraData Camera
+		public Matrix Camera
 		{
 			get
 			{
