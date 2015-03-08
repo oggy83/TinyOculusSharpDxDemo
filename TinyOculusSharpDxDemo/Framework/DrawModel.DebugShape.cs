@@ -77,52 +77,52 @@ namespace TinyOculusSharpDxDemo
 			var vertices = new _VertexDebug[]
 			{
 				// top plane
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(0, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(us, 0), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(0, us), Normal = Vector3.UnitY },
 
 				// bottom plane
-				new _VertexDebug() { Position = new Vector4( -gs, -gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs, -gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs, -gs,  -gs, 1), UV = new Vector2(0, us) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
+				new _VertexDebug() { Position = new Vector4( -gs, -gs,  gs, 1), UV = new Vector2(0, 0), Normal = -Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = -Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(us, 0), Normal = -Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( -gs, -gs,  gs, 1), UV = new Vector2(0, 0), Normal = -Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( -gs, -gs,  -gs, 1), UV = new Vector2(0, us), Normal = -Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = -Vector3.UnitY },
 
 				// forward plane
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  -gs, 1), UV = new Vector2(0, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(0, 0), Normal = -Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, 0), Normal = -Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = -Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(0, 0), Normal = -Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = -Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  -gs, 1), UV = new Vector2(0, us), Normal = -Vector3.UnitZ },
 
 				// back plane
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  gs, 1), UV = new Vector2(0, us) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(us, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(us, 0), Normal = Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  gs, 1), UV = new Vector2(0, us), Normal = Vector3.UnitZ },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitZ },
 
 				// left plane
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  gs, 1), UV = new Vector2(0, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = -Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  -gs, 1), UV = new Vector2(us, 0), Normal = -Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = -Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( -gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = -Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = -Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( -gs,  -gs,  gs, 1), UV = new Vector2(0, us), Normal = -Vector3.UnitX },
 				
 				// right plane
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(0, us) },
-				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us) },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  -gs, 1), UV = new Vector2(us, 0), Normal = Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( gs,  gs,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  gs, 1), UV = new Vector2(0, us), Normal = Vector3.UnitX },
+				new _VertexDebug() { Position = new Vector4( gs,  -gs,  -gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitX },
 				
 			};
 
@@ -151,12 +151,12 @@ namespace TinyOculusSharpDxDemo
 
 			var vertices = new _VertexDebug[]
 			{
-				new _VertexDebug() { Position = new Vector4( -gs,  0,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  0,  gs, 1), UV = new Vector2(us, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  0,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  0,  gs, 1), UV = new Vector2(0, 0) },
-				new _VertexDebug() { Position = new Vector4( gs,  0,  -gs, 1), UV = new Vector2(us, us) },
-				new _VertexDebug() { Position = new Vector4( -gs,  0,  -gs, 1), UV = new Vector2(0, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  0,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  0,  gs, 1), UV = new Vector2(us, 0), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  0,  -gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( -gs,  0,  gs, 1), UV = new Vector2(0, 0), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( gs,  0,  -gs, 1), UV = new Vector2(us, us), Normal = Vector3.UnitY },
+				new _VertexDebug() { Position = new Vector4( -gs,  0,  -gs, 1), UV = new Vector2(0, us), Normal = Vector3.UnitY },
 			};
 
 			for (int i = 0; i < vertices.Length; ++i)

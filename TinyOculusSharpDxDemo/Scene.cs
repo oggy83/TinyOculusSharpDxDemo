@@ -48,15 +48,12 @@ namespace TinyOculusSharpDxDemo
 			drawSys.ResourceRepository.AddResource(m_floorTexture);
 
 			// light setting
-			/*
-			var dirLight = new DrawSystem.DirectionalLightData()
+			drawSys.SetDirectionalLight(new DrawSystem.DirectionalLightData()
 			{
 				Direction = new Vector3(0.3f, -0.5f, 0),
-				Color = new Color3(0.22f, 0.22f, 0.2f),
-			};
-			drawSys.SetDirectionalLight(dirLight);
-			*/
-			drawSys.AmbientColor = new Color3(0.1f, 0.1f, 0.15f);
+				Color = new Color3(0.9f, 0.9f, 0.8f),
+			});
+			drawSys.AmbientColor = new Color3(0.3f, 0.3f, 0.6f);
 
 			// init other members
 			m_dtFpsCounter = new FpsCounter();
