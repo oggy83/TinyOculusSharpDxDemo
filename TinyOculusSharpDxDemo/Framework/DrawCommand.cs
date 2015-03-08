@@ -28,7 +28,7 @@ namespace TinyOculusSharpDxDemo
 
 		#region DrawModel
 
-		public static DrawCommand CreateDrawModelCommand(Matrix worldTrans, DrawSystem.MeshData mesh)
+		public static DrawCommand CreateDrawModelCommand(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView texture)
 		{
 			return new DrawCommand()
 			{
@@ -37,6 +37,7 @@ namespace TinyOculusSharpDxDemo
 				{
 					m_worldTransform = worldTrans,
 					m_mesh = mesh,
+					m_texture = texture,
 				}
 			};
 		}
@@ -77,6 +78,7 @@ namespace TinyOculusSharpDxDemo
 	{
 		public Matrix m_worldTransform;
 		public DrawSystem.MeshData m_mesh;
+		public TextureView m_texture;
 	}
 
 	/// <summary>

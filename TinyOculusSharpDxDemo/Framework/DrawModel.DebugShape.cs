@@ -65,5 +65,37 @@ namespace TinyOculusSharpDxDemo
 			return model;
 		}
 
+		public static DrawModel CreateFloor(String uid, float geometryScale, float uvScale, Color4 color, Vector4 offset)
+		{
+			var drawSys = DrawSystem.GetInstance();
+			var d3d = drawSys.D3D;
+			float gs = geometryScale;
+			float us = uvScale;
+
+			var vertices = new _VertexDebug[]
+			{
+				new _VertexDebug() { Position = new Vector4( -gs,  0,  gs, 1), UV = new Vector2(0f, 0) },
+				new _VertexDebug() { Position = new Vector4( gs,  0,  gs, 1), UV = new Vector2(us, 0) },
+				new _VertexDebug() { Position = new Vector4( gs,  0,  -gs, 1), UV = new Vector2(us, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  0,  gs, 1), UV = new Vector2(0, 0) },
+				new _VertexDebug() { Position = new Vector4( gs,  0,  -gs, 1), UV = new Vector2(us, us) },
+				new _VertexDebug() { Position = new Vector4( -gs,  0,  -gs, 1), UV = new Vector2(0, us) },
+			};
+
+			for (int i = 0; i < vertices.Length; ++i)
+			{
+				vertices[i].Position += offset;
+				vertices[i].Position.W = 1;
+				vertices[i].Color = color;
+			}
+
+			var model = new DrawModel(uid);
+			model.m_nodeList.Add(new Node()
+			{
+				Mesh = DrawUtil.CreateMeshData<_VertexDebug>(d3d, PrimitiveTopology.TriangleList, vertices),
+			});
+
+			return model;
+		}
 	}
 }

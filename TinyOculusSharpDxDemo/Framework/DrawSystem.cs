@@ -168,7 +168,7 @@ namespace TinyOculusSharpDxDemo
 			int sleepTime = (int)Math.Max(0, 1000.0f / 75.0f - deltaTime);// 75FPS
 			if (sleepTime > 0)
 			{
-				//Thread.Sleep(sleepTime);
+				Thread.Sleep(sleepTime);
 			}
 			dtFpsCounter.EndFrame();
 			dtFpsCounter.BeginFrame();

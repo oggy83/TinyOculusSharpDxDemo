@@ -92,6 +92,7 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.context.InputAssembler.InputLayout = effect.Layout;
 			m_d3d.context.VertexShader.Set(effect.VertexShader);
 			m_d3d.context.PixelShader.Set(effect.PixelShader);
+			commandData.m_texture.SetContext(0, m_d3d);
 
 			// update matrix
 			var wvpMat = commandData.m_worldTransform * world.camera * m_proj;
@@ -183,6 +184,7 @@ namespace TinyOculusSharpDxDemo
 				{
 					new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
 					new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0),
+					new InputElement("TEXCOORD", 0, Format.R32G32_Float, 32, 0),
 					//new InputElement("NORMAL", 0, Format.R32G32B32_Float, 16, 0),
 					//new InputElement("TANGENT", 0, Format.R32G32B32_Float, 0, 1),
 					//new InputElement("BONEINDEX", 0, Format.R32G32B32A32_SInt, 0, 2),

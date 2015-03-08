@@ -20,7 +20,10 @@ namespace TinyOculusSharpDxDemo
 		private FpsCounter m_dtFpsCounter;
 		private FpsCounter m_perfFpsCounter;
 		private DrawModel m_box;
+		private DrawModel m_floor;
 		private float m_accTime = 0.0f;
+		private TextureView m_blockTexture = null;
+		private TextureView m_floorTexture = null;
 
         public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd, bool bStereoRendering)
 		{
@@ -38,6 +41,12 @@ namespace TinyOculusSharpDxDemo
 
 			var drawSys = DrawSystem.GetInstance();
 
+			// load textures
+			m_blockTexture = TextureView.FromFile("block", drawSys.D3D, "Image/block.png");
+			m_floorTexture = TextureView.FromFile("floor", drawSys.D3D, "Image/floor.jpg");
+			drawSys.ResourceRepository.AddResource(m_blockTexture);
+			drawSys.ResourceRepository.AddResource(m_floorTexture);
+
 			// light setting
 			/*
 			var dirLight = new DrawSystem.DirectionalLightData()
@@ -53,6 +62,7 @@ namespace TinyOculusSharpDxDemo
 			m_dtFpsCounter = new FpsCounter();
 			m_perfFpsCounter = new FpsCounter();
 			m_box = DrawModel.CreateBox("box", 0.1f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), Vector4.Zero);
+			m_floor = DrawModel.CreateFloor("floor", 10.0f, 4.0f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, 5.0f, 1.0f));
 		}
 
         public void RenderFrame()
@@ -64,7 +74,7 @@ namespace TinyOculusSharpDxDemo
 			//inputSys.Update(dT);
 
 			// update camera
-			var camera = new DrawSystem.CameraData(Vector3.Zero, new Vector3(0.0f, 0.0f, 1.0f), Vector3.Up);
+			var camera = new DrawSystem.CameraData(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up);
 
 			// draw
 			var drawSys = DrawSystem.GetInstance();
@@ -80,8 +90,9 @@ namespace TinyOculusSharpDxDemo
 
 			m_accTime += dT;
 			float angle = m_accTime % (2.0f * (float)Math.PI);
-			Matrix worldTrans = Matrix.RotationYawPitchRoll(angle, angle, angle) * Matrix.Translation(0.0f, 0.0f, 3.0f);
-			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, m_box.NodeList[0].Mesh));
+			Matrix worldTrans = Matrix.RotationYawPitchRoll(angle, angle, angle) * Matrix.Translation(0.0f, 1.2f, 3.0f);
+			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, m_box.NodeList[0].Mesh, m_blockTexture));
+			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.NodeList[0].Mesh, m_floorTexture));
 
 			drawSys.ProcessDrawCommand(m_dtFpsCounter, m_perfFpsCounter);
 		}

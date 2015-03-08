@@ -167,8 +167,9 @@ namespace TinyOculusSharpDxDemo
 			{
 				LibOVR.ovrPosef eyePose = m_tmpEyePoses[eyeIndex];
 
-				var q = new Quaternion(eyePose.Orientation.x, eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w);
-				var v = new Vector3(eyePose.Position.x, eyePose.Position.y, eyePose.Position.z);
+				// Posef is a right-hand system, so we convert to left-hand system
+				var q = new Quaternion(eyePose.Orientation.x, eyePose.Orientation.y, -eyePose.Orientation.z, eyePose.Orientation.w);
+				var v = new Vector3(-eyePose.Position.x, eyePose.Position.y, eyePose.Position.z);
 				var M = Matrix.RotationQuaternion(q) * Matrix.Translation(v);
 
 				result[eyeIndex] = M;

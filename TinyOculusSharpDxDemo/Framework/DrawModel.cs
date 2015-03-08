@@ -42,6 +42,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			public Vector4 Position;
 			public Color4 Color;
+			public Vector2 UV;
 		}
 
 		#endregion // inner class
