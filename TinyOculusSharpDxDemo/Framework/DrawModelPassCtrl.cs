@@ -14,8 +14,6 @@ namespace TinyOculusSharpDxDemo
 {
 	public class DrawModelPassCtrl : IDrawPassCtrl
 	{
-		public const int MaxBoneMatrices = 32;
-
 		public DrawModelPassCtrl(DrawSystem.D3DData d3d, DrawResourceRepository repository)
 		{
 			m_d3d = d3d;
@@ -62,7 +60,6 @@ namespace TinyOculusSharpDxDemo
 		public void StartPass(RenderTarget renderTarget)
 		{
 			var context = m_d3d.context;
-			//int width = m_d3d.swapChain.Description.ModeDescription.Width / 2;// @todo yasut
 			int width = renderTarget.Resolution.Width;
 			int height = renderTarget.Resolution.Height;
 			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
@@ -112,11 +109,8 @@ namespace TinyOculusSharpDxDemo
 			{
 				ambientCol = new Color4(world.ambientCol),
 				light1Col = new Color4(world.dirLight.Color),
-				//light2Col = new Color4(world.pointLights[0].Color),
-				//lightRange = new Vector4(world.pointLights[0].Range, 0, 0, 0),
 				cameraPos = new Vector4(world.camera.TranslationVector, 1.0f),
 				light1Dir = new Vector4(world.dirLight.Direction, 0.0f),
-				//light2Pos = world.pointLights[0].Position,
 			};
 			
 			context.UpdateSubresource(ref pdata, m_pcBuf);
@@ -136,25 +130,14 @@ namespace TinyOculusSharpDxDemo
 			
 			public Matrix wvpMat;			// word view projection matrix
 			public Matrix worldMat;			// word matrix
-			
-			public bool isEnableSkinning;
-			public float dummy1;
-			public float dummy2;
-			public float dummy3;
-			
-			//public Matrix light1InvWvpMat;	// inverse word view projection matrix for light1
 		}
 
 		private struct _PixelShaderConst
 		{
 			public Color4 ambientCol;
 			public Color4 light1Col;	// light1 color
-			public Color4 light2Col;	// light2 color
-			public Vector4 lightRange;	// light2-light5 range
-
-			public Vector4 cameraPos;		// camera position in model coords
-			public Vector4 light1Dir;		// light1 direction in model coords
-			public Vector4 light2Pos;		// light2 position in model coords
+			public Vector4 cameraPos;	// camera position in model coords
+			public Vector4 light1Dir;	// light1 direction in model coords
 		}
 
 		#endregion // private types
