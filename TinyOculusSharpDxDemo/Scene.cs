@@ -61,7 +61,7 @@ namespace TinyOculusSharpDxDemo
 			// init other members
 			m_dtFpsCounter = new FpsCounter();
 			m_perfFpsCounter = new FpsCounter();
-			m_box = DrawModel.CreateBox("box", 0.1f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), Vector4.Zero);
+			m_box = DrawModel.CreateBox("box", 0.1f, 1.0f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), Vector4.Zero);
 			m_floor = DrawModel.CreateFloor("floor", 10.0f, 4.0f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, 5.0f, 1.0f));
 		}
 
