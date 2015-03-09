@@ -65,7 +65,7 @@ namespace TinyOculusSharpDxDemo
 			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
 			context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
 			context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
-			context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.3f, 0.45f, 1.0f));
+			context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.5f, 0.8f, 1.0f));
 
 			// update projection matrix
 			Single aspect = (float)width / (float)height;
