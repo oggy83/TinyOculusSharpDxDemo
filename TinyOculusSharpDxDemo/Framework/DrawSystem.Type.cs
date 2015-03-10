@@ -34,65 +34,6 @@ namespace TinyOculusSharpDxDemo
 				this.Direction = dir;
 				this.Color = col;
 			}
-
-			public Matrix GetViewMatrix()
-			{
-				// make view matrix from directional light
-				DrawSystem.CameraData camera;
-				camera.lookAt = new Vector3(0, 0, 0);//MathUtil.ToVector3(m_worldTransform.get_Rows(3));
-				camera.eye = camera.lookAt + Direction * -20;// eye at 20m off
-				camera.up = new Vector3(0, 1, 0);
-
-				return camera.GetViewMatrix();
-			}
-		}
-
-		public struct PointLightData
-		{
-			/// <summary>
-			/// light position
-			/// </summary>
-			public Vector4 Position;
-
-			/// <summary>
-			/// light range [m]
-			/// </summary>
-			public float Range;
-
-			/// <summary>
-			/// light color 
-			/// </summary>
-			public Color3 Color;
-
-			public PointLightData(Vector4 position, float range, Color3 col)
-			{
-				this.Position = position;
-				this.Range = range;
-				this.Color = col;
-			}
-
-		}
-
-		/// <summary>
-		/// camera
-		/// </summary>
-		public struct CameraData
-		{
-			public Vector3 eye;
-			public Vector3 lookAt;
-			public Vector3 up;
-
-			public CameraData(Vector3 eye, Vector3 lookAt, Vector3 up)
-			{
-				this.eye = eye;
-				this.lookAt = lookAt;
-				this.up = up;
-			}
-
-			public Matrix GetViewMatrix()
-			{
-				return Matrix.LookAtLH(eye, lookAt, up);
-			}
 		}
 
 		/// <summary>
@@ -103,7 +44,6 @@ namespace TinyOculusSharpDxDemo
 			public Matrix camera;
 			public Color3 ambientCol;
 			public DrawSystem.DirectionalLightData dirLight;
-			public DrawSystem.PointLightData[] pointLights;
 		}
 
 		public struct D3DData
@@ -117,7 +57,7 @@ namespace TinyOculusSharpDxDemo
 		public struct MeshData
 		{
 			public int VertexCount { get; set; }
-			public VertexBufferBinding[] Buffers { get; set; }
+			public VertexBufferBinding Buffer { get; set; }
 			public PrimitiveTopology Topology { get; set; }
 
 			public static MeshData Create(int bufferCount)
@@ -125,7 +65,6 @@ namespace TinyOculusSharpDxDemo
 				var data = new MeshData()
 				{
 					VertexCount = 0,
-					Buffers = new VertexBufferBinding[bufferCount],
 					Topology = PrimitiveTopology.TriangleList
 				};
 

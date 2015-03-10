@@ -132,11 +132,6 @@ namespace TinyOculusSharpDxDemo
 			m_world.dirLight = light;
 		}
 
-		public void SetPointLight(PointLightData[] lights)
-		{
-			m_world.pointLights = lights;
-		}
-
 		/// <summary>
 		/// Add draw command which is processed in current frame
 		/// </summary>

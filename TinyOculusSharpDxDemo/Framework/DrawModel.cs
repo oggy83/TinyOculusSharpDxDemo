@@ -50,10 +50,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void Dispose()
 		{
-			foreach (var buf in m_mesh.Buffers)
-			{
-				buf.Buffer.Dispose();
-			}
+			m_mesh.Buffer.Buffer.Dispose();
 		}
 
 		public static DrawModel CreateBox(float geometryScale, float uvScale, Color4 color, Vector4 offset)

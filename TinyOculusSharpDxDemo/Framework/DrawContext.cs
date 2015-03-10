@@ -134,7 +134,7 @@ namespace TinyOculusSharpDxDemo
 			}
 			else
 			{
-				int syncInterval = 0;// immediately
+				int syncInterval = 0;// 0 => immediately return, 1 => vsync
 				m_d3d.swapChain.Present(syncInterval, PresentFlags.None);
 			}
 		}

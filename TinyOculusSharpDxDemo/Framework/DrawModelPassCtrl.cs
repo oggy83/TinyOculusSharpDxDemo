@@ -120,7 +120,7 @@ namespace TinyOculusSharpDxDemo
 
 			// draw
 			m_d3d.context.InputAssembler.PrimitiveTopology = commandData.m_mesh.Topology;
-			m_d3d.context.InputAssembler.SetVertexBuffers(0, commandData.m_mesh.Buffers);
+			m_d3d.context.InputAssembler.SetVertexBuffers(0, commandData.m_mesh.Buffer);
 			m_d3d.context.Draw(commandData.m_mesh.VertexCount, 0);
 		}
 
