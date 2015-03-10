@@ -90,7 +90,6 @@ namespace TinyOculusSharpDxDemo
 			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.Mesh, m_floorTexture));
 
 			// draw block entities
-			
 			foreach (var entity in m_entityList)
 			{
 				float frame = (float)m_accTime + entity.Delay;

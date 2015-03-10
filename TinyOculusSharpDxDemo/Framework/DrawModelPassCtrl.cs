@@ -71,6 +71,15 @@ namespace TinyOculusSharpDxDemo
 			Single aspect = (float)width / (float)height;
 			Single fov = (Single)Math.PI / 4;
 			m_proj = Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
+
+			// init fixed settings
+			Effect effect = null;
+			effect = m_repository.FindResource<Effect>("Std");
+
+			// set context
+			m_d3d.context.InputAssembler.InputLayout = effect.Layout;
+			m_d3d.context.VertexShader.Set(effect.VertexShader);
+			m_d3d.context.PixelShader.Set(effect.PixelShader);
 		}
 
 		/// <summary>
@@ -82,29 +91,23 @@ namespace TinyOculusSharpDxDemo
 		{
 			var commandData = command.GetDrawModelData();
 
-			Effect effect = null;
-			effect = m_repository.FindResource<Effect>("Std");
-
-			// set context
-			m_d3d.context.InputAssembler.InputLayout = effect.Layout;
-			m_d3d.context.VertexShader.Set(effect.VertexShader);
-			m_d3d.context.PixelShader.Set(effect.PixelShader);
 			commandData.m_texture.SetContext(0, m_d3d);
 
-			// update matrix
-			var wvpMat = commandData.m_worldTransform * world.camera * m_proj;
+			
 			var context = m_d3d.context;
 
+			// update vertex shader resouce
+			var wvpMat = commandData.m_worldTransform * world.camera * m_proj;
 			var vdata = new _VertexShaderConst()
 			{
 				// hlsl is column-major memory layout, so we must transpose matrix
 				wvpMat = Matrix.Transpose(wvpMat),
 				worldMat = Matrix.Transpose(commandData.m_worldTransform),
 			};
-
 			context.UpdateSubresource(ref vdata, m_vcBuf);
 			context.VertexShader.SetConstantBuffer(0, m_vcBuf);
 
+			// update pixel shader resource
 			var pdata = new _PixelShaderConst()
 			{
 				ambientCol = new Color4(world.ambientCol),
@@ -112,7 +115,6 @@ namespace TinyOculusSharpDxDemo
 				cameraPos = new Vector4(world.camera.TranslationVector, 1.0f),
 				light1Dir = new Vector4(world.dirLight.Direction, 0.0f),
 			};
-			
 			context.UpdateSubresource(ref pdata, m_pcBuf);
 			context.PixelShader.SetConstantBuffer(0, m_pcBuf);
 
@@ -127,7 +129,6 @@ namespace TinyOculusSharpDxDemo
 		[StructLayout(LayoutKind.Sequential, Pack = 16)]
 		private struct _VertexShaderConst
 		{
-			
 			public Matrix wvpMat;			// word view projection matrix
 			public Matrix worldMat;			// word matrix
 		}
