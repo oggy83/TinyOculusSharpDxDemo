@@ -87,7 +87,7 @@ namespace TinyOculusSharpDxDemo
 			}
 
 			// draw floor
-			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.NodeList[0].Mesh, m_floorTexture));
+			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.Mesh, m_floorTexture));
 
 			// draw block entities
 			
@@ -99,7 +99,7 @@ namespace TinyOculusSharpDxDemo
 					Matrix.RotationYawPitchRoll(angle, angle, angle) 
 					* entity.Layout
 					* Matrix.Translation((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f);
-				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, entity.Model.NodeList[0].Mesh, m_blockTexture));
+				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, entity.Model.Mesh, m_blockTexture));
 			}
 
 			// execute draw commands
