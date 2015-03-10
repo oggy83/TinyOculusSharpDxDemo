@@ -16,7 +16,7 @@ namespace TinyOculusSharpDxDemo
 	/// <summary>
 	/// draw model class
 	/// </summary>
-	public partial class DrawModel : ResourceBase
+	public partial class DrawModel : IDisposable
 	{
 		#region properties
 
@@ -43,13 +43,20 @@ namespace TinyOculusSharpDxDemo
 
 		#endregion // inner class
 
-		public DrawModel(String uid)
-			: base(uid)
+		public DrawModel()
 		{
 			// nothing
 		}
 
-		public static DrawModel CreateBox(String uid, float geometryScale, float uvScale, Color4 color, Vector4 offset)
+		public void Dispose()
+		{
+			foreach (var buf in m_mesh.Buffers)
+			{
+				buf.Buffer.Dispose();
+			}
+		}
+
+		public static DrawModel CreateBox(float geometryScale, float uvScale, Color4 color, Vector4 offset)
 		{
 			var drawSys = DrawSystem.GetInstance();
 			var d3d = drawSys.D3D;
@@ -115,13 +122,13 @@ namespace TinyOculusSharpDxDemo
 				vertices[i].Color = color;
 			}
 
-			var model = new DrawModel(uid);
+			var model = new DrawModel();
 			model.m_mesh = DrawUtil.CreateMeshData<_VertexDebug>(d3d, PrimitiveTopology.TriangleList, vertices);
 
 			return model;
 		}
 
-		public static DrawModel CreateFloor(String uid, float geometryScale, float uvScale, Color4 color, Vector4 offset)
+		public static DrawModel CreateFloor(float geometryScale, float uvScale, Color4 color, Vector4 offset)
 		{
 			var drawSys = DrawSystem.GetInstance();
 			var d3d = drawSys.D3D;
@@ -145,7 +152,7 @@ namespace TinyOculusSharpDxDemo
 				vertices[i].Color = color;
 			}
 
-			var model = new DrawModel(uid);
+			var model = new DrawModel();
 			model.m_mesh = DrawUtil.CreateMeshData<_VertexDebug>(d3d, PrimitiveTopology.TriangleList, vertices);
 
 			return model;

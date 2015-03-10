@@ -53,7 +53,7 @@ namespace TinyOculusSharpDxDemo
 						float g = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
 						float b = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
 						float speed = RandomUtil.NextFloat(rnd, 0.6f, 0.9f);
-						var box = DrawModel.CreateBox("box", scale, 1.0f, new Color4(r, g, b, 1.0f), Vector4.Zero);
+						var box = DrawModel.CreateBox(scale, 1.0f, new Color4(r, g, b, 1.0f), Vector4.Zero);
 						var layout = Matrix.Translation(-10.0f + 2.0f * j, 2.0f + 2.0f * i, -15.0f);
 						m_entityList.Add(new _EntityData()
 						{
@@ -68,7 +68,7 @@ namespace TinyOculusSharpDxDemo
 
 			// init others
 			m_fps = new FpsCounter();
-			m_floor = DrawModel.CreateFloor("floor", 10.0f, 4.0f, Color4.White, Vector4.Zero);
+			m_floor = DrawModel.CreateFloor(10.0f, 4.0f, Color4.White, Vector4.Zero);
 		}
 
         public void RenderFrame()
@@ -110,7 +110,11 @@ namespace TinyOculusSharpDxDemo
         /// </summary>
         public void Dispose()
         {
-			// @todo release DrawModel
+			m_floor.Dispose();
+			foreach (var entity in m_entityList)
+			{
+				entity.Model.Dispose();
+			}
 		}
 
 		#region private types

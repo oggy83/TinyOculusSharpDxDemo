@@ -22,7 +22,6 @@ namespace TinyOculusSharpDxDemo
 			var renderTarget = RenderTarget.CreateDefaultRenderTarget(d3d);
 			AddResource(renderTarget);
 		}
-
 		
 		public void AddResource(ResourceBase res)
 		{
@@ -35,12 +34,6 @@ namespace TinyOculusSharpDxDemo
 			{
 				m_shaderMap.Add(res as Effect);
 			}
-			/*
-            else if (type == typeof(DrawModel))
-            {
-                m_modelMap.Add(res as DrawModel);
-            }
-			*/
 			else if (type == typeof(TextureView))
 			{
 				m_texMap.Add(res as TextureView);
@@ -66,12 +59,6 @@ namespace TinyOculusSharpDxDemo
 			{
 				return m_shaderMap.Find(uid) as ResourceType;
 			}
-			/*
-            else if (type == typeof(DrawModel))
-            {
-                return m_modelMap.Find(uid) as ResourceType;
-            }
-			*/
 			else if (type == typeof(TextureView))
 			{
 				return m_texMap.Find(uid) as ResourceType;
