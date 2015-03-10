@@ -14,8 +14,8 @@ namespace TinyOculusSharpDxDemo
 		public FpsCounter()
 		{
 			m_sw = new Stopwatch();
-			m_dT = 0;
-			m_dtQueue = new Queue<long>();
+			m_deltaTick = 0;
+			m_deltaTickQueue = new Queue<long>();
 			m_sw.Start();
 		}
 
@@ -30,31 +30,32 @@ namespace TinyOculusSharpDxDemo
 			{
 				m_sw.Stop();
 				// update delta time
-				m_dT = m_sw.ElapsedMilliseconds;
-				if (m_dtQueue.Count == MaxDeltaTimeQueueCount)
+				m_deltaTick = m_sw.ElapsedTicks;
+				if (m_deltaTickQueue.Count == MaxDeltaTimeQueueCount)
 				{
-					m_dtQueue.Dequeue();
+					m_deltaTickQueue.Dequeue();
 				}
-				m_dtQueue.Enqueue(m_dT);
+				m_deltaTickQueue.Enqueue(m_deltaTick);
 			}
 		}
 
 		/// <summary>
-		/// get delta time in milisec
+		/// get delta time in sec
 		/// </summary>
 		/// <returns></returns>
-		public int GetDeltaTime()
+		public double GetDeltaTime()
 		{
-			return (int)m_dT;
+			return (double)m_deltaTick / Stopwatch.Frequency;
 		}
 
 		/// <summary>
-		/// get average delta time in milisec
+		/// get average delta time in sec
 		/// </summary>
 		/// <returns></returns>
-		public int GetAverageDeltaTime()
+		public double GetAverageDeltaTime()
 		{
-			return m_dtQueue.Count == 0? 0 : (int)m_dtQueue.Average();
+			double avgTickCount = (m_deltaTickQueue.Count == 0) ? 0 : m_deltaTickQueue.Average();
+			return avgTickCount / Stopwatch.Frequency;
 		}
 
 		#region private members
@@ -62,14 +63,14 @@ namespace TinyOculusSharpDxDemo
 		private Stopwatch m_sw = null;
 
 		/// <summary>
-		/// next delta time [mili sec]
+		/// next delta tick count
 		/// </summary>
-		private long m_dT;
+		private long m_deltaTick;
 
 		/// <summary>
-		/// delta time queue
+		/// delta tick count queue
 		/// </summary>
-		private Queue<long> m_dtQueue;
+		private Queue<long> m_deltaTickQueue;
 
 		#endregion // private members
 

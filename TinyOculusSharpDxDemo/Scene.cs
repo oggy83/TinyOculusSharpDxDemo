@@ -74,7 +74,7 @@ namespace TinyOculusSharpDxDemo
 
         public void RenderFrame()
 		{
-			float dT = (float)m_dtFpsCounter.GetDeltaTime() / 1000.0f;
+			float dT = (float)m_dtFpsCounter.GetDeltaTime();
 
 			// update camera
 			var camera = new DrawSystem.CameraData(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up);
@@ -86,8 +86,8 @@ namespace TinyOculusSharpDxDemo
 			// disp fps
 			{
 				//int avgDT = m_perfFpsCounter.GetAverageDeltaTime();
-				int avgDT = m_dtFpsCounter.GetAverageDeltaTime();
-				string text = String.Format("FPS:{0:f2}, DeltaTime:{1:f2}ms", 1000.0f / avgDT, avgDT);
+				double avgDT = m_dtFpsCounter.GetAverageDeltaTime();
+				string text = String.Format("FPS:{0:f2}, DeltaTime:{1:f2}ms", 1.0 / avgDT, avgDT * 1000.0f);
 				drawSys.AddDrawCommand(DrawCommand.CreateDrawTextCommand(text));
 			}
 

@@ -164,8 +164,8 @@ namespace TinyOculusSharpDxDemo
 
 			m_context.EndScene();
 			perfFpsCounter.EndFrame();
-			int deltaTime = perfFpsCounter.GetDeltaTime();
-			int sleepTime = (int)Math.Max(0, 1000.0f / 75.0f - deltaTime);// 75FPS
+			double deltaTime = perfFpsCounter.GetDeltaTime();
+			int sleepTime = (int)Math.Max(0, 1.0 / 75.0f - deltaTime);// 75FPS
 			if (sleepTime > 0)
 			{
 				//Thread.Sleep(sleepTime);
