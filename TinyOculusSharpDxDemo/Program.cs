@@ -60,10 +60,15 @@ namespace TinyOculusSharpDxDemo
 			SwapChain swapChain;
 			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, desc, out device, out swapChain);
 
+			DrawSystem.Initialize(form.GetRenderTarget().Handle, device, swapChain, hmd, bStereoRendering);
+			TextSystem.Initialize(form.GetRenderTarget());
+
 			var scene = new Scene(device, swapChain, form.GetRenderTarget(), hmd, bStereoRendering);
 			RenderLoop.Run(form, () => { scene.RenderFrame(); });
 
 			// Release
+			TextSystem.Dispose();
+			DrawSystem.Dispose();
 			scene.Dispose();
 			device.Dispose();
 			swapChain.Dispose();

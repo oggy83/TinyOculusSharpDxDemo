@@ -102,7 +102,6 @@ namespace TinyOculusSharpDxDemo
 
 		private DrawSystem(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering)
         {
-			timeBeginPeriod(1);// for Sleep() precision
 			m_d3d = new D3DData
 			{
 				device = device,
@@ -150,10 +149,9 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// Process all draw command
 		/// </summary>
-		/// <param name="dtFpsCounter">fps counter for calc delta time</param>
-		/// <param name="perfFpsCounter">fps counter for performance monitor</param>
+		/// <param name="dtFpsCounter">fps counter</param>
 		/// <remarks>This method clears draw command list</remarks>
-		public void ProcessDrawCommand(FpsCounter dtFpsCounter, FpsCounter perfFpsCounter)
+		public void ProcessDrawCommand(FpsCounter dtFpsCounter)
 		{
 			DrawSystem.WorldData data = m_world;
 			m_context.BeginScene(data);
@@ -163,16 +161,8 @@ namespace TinyOculusSharpDxDemo
 			m_commandBuffer.Clear();
 
 			m_context.EndScene();
-			perfFpsCounter.EndFrame();
-			double deltaTime = perfFpsCounter.GetDeltaTime();
-			int sleepTime = (int)Math.Max(0, 1.0 / 75.0f - deltaTime);// 75FPS
-			if (sleepTime > 0)
-			{
-				//Thread.Sleep(sleepTime);
-			}
 			dtFpsCounter.EndFrame();
 			dtFpsCounter.BeginFrame();
-			perfFpsCounter.BeginFrame();
 		}
 
 		#region private members

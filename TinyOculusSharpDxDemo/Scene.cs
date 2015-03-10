@@ -20,9 +20,6 @@ namespace TinyOculusSharpDxDemo
 		
         public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd, bool bStereoRendering)
 		{
-			DrawSystem.Initialize(renderTarget.Handle, device, swapChain, hmd, bStereoRendering);
-			TextSystem.Initialize(renderTarget);
-			
 			var drawSys = DrawSystem.GetInstance();
 
 			// load textures
@@ -39,11 +36,9 @@ namespace TinyOculusSharpDxDemo
 			});
 			drawSys.AmbientColor = new Color3(0.3f, 0.4f, 0.6f);
 
-			// init other members
-			m_dtFpsCounter = new FpsCounter();
-			m_perfFpsCounter = new FpsCounter();
-			m_floor = DrawModel.CreateFloor("floor", 10.0f, 4.0f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, 5.0f, 1.0f));
-
+			// camera setting
+			drawSys.Camera = new DrawSystem.CameraData(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up).GetViewMatrix();
+			
 			// create random box storm
 			var rnd = new Random();
 			var directions = new Vector2[] { new Vector2(1,0), new Vector2(-1,0), new Vector2(0,1), new Vector2(0,-1)};
@@ -70,45 +65,45 @@ namespace TinyOculusSharpDxDemo
 					}
 				}
 			}
+
+			// init others
+			m_fps = new FpsCounter();
+			m_floor = DrawModel.CreateFloor("floor", 10.0f, 4.0f, Color4.White, Vector4.Zero);
 		}
 
         public void RenderFrame()
 		{
-			float dT = (float)m_dtFpsCounter.GetDeltaTime();
-
-			// update camera
-			var camera = new DrawSystem.CameraData(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up);
+			double dt = m_fps.GetDeltaTime();
+			m_accTime += dt;
 
 			// draw
 			var drawSys = DrawSystem.GetInstance();
-			drawSys.Camera = camera.GetViewMatrix();
 
 			// disp fps
 			{
-				//int avgDT = m_perfFpsCounter.GetAverageDeltaTime();
-				double avgDT = m_dtFpsCounter.GetAverageDeltaTime();
+				double avgDT = m_fps.GetAverageDeltaTime();
 				string text = String.Format("FPS:{0:f2}, DeltaTime:{1:f2}ms", 1.0 / avgDT, avgDT * 1000.0f);
 				drawSys.AddDrawCommand(DrawCommand.CreateDrawTextCommand(text));
 			}
 
-			m_accTime += dT;
-			
 			// draw floor
 			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.NodeList[0].Mesh, m_floorTexture));
 
 			// draw block entities
+			
 			foreach (var entity in m_entityList)
 			{
-				float angle = (m_accTime + entity.Delay) % (2.0f * (float)Math.PI);
+				float frame = (float)m_accTime + entity.Delay;
+				float angle = frame % (2.0f * (float)Math.PI);
 				Matrix worldTrans =
 					Matrix.RotationYawPitchRoll(angle, angle, angle) 
 					* entity.Layout
-					* Matrix.Translation((entity.Velocity.X * m_accTime + entity.Delay) % 30.0f, 0.0f, (entity.Velocity.Y * m_accTime + entity.Delay) % 30.0f);
+					* Matrix.Translation((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f);
 				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, entity.Model.NodeList[0].Mesh, m_blockTexture));
 			}
 
 			// execute draw commands
-			drawSys.ProcessDrawCommand(m_dtFpsCounter, m_perfFpsCounter);
+			drawSys.ProcessDrawCommand(m_fps);
 		}
 
         /// <summary>
@@ -116,9 +111,7 @@ namespace TinyOculusSharpDxDemo
         /// </summary>
         public void Dispose()
         {
-			//InputSystem.Dispose();
-			TextSystem.Dispose();
-			DrawSystem.Dispose();
+			// @todo release DrawModel
 		}
 
 		#region private types
@@ -135,11 +128,10 @@ namespace TinyOculusSharpDxDemo
 
 		#region private members
 
-		private FpsCounter m_dtFpsCounter;
-		private FpsCounter m_perfFpsCounter;
+		private FpsCounter m_fps;
 		private List<_EntityData> m_entityList = new List<_EntityData>();
 		private DrawModel m_floor;
-		private float m_accTime = 0.0f;
+		private double m_accTime = 0;
 		private TextureView m_blockTexture = null;
 		private TextureView m_floorTexture = null;
 
