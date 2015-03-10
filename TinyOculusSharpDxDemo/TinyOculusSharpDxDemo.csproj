@@ -87,7 +87,6 @@
     <Compile Include="HmdDevice.cs" />
     <Compile Include="HmdSystem.cs" />
     <Compile Include="LibOVR.cs" />
-    <Compile Include="Framework\MathUtil.cs" />
     <Compile Include="MyForm.cs">
       <SubType>Form</SubType>
     </Compile>
