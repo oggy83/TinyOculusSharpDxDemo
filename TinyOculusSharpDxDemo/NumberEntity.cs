@@ -35,8 +35,8 @@ namespace TinyOculusSharpDxDemo
 
 		public void SetNumber(float num)
 		{
-			num = MathUtil.Clamp(num, 0, 999.99f);
-			m_text = String.Format("{0:f2}", num).ToArray();
+			num = MathUtil.Clamp(num, 0, 999.9f);
+			m_text = String.Format("{0:f1}", num).ToArray();
 		}
 
 		public void Draw()
@@ -46,24 +46,26 @@ namespace TinyOculusSharpDxDemo
 			foreach (char c in m_text)
 			{
 				TextureView tex = null;
+				float offset = 0.0f;
 				switch (c)
 				{
 					case '.' :
 						tex = m_initParam.Dot;
-						layout *= Matrix.Translation(0.2f, 0, 0);
+						offset = 0.22f;
 						break;
 					default :
 						if ('0' <= c && c <= '9')
 						{
 							int num = (int)c - (int)'0';
 							tex = m_initParam.Numbers[num];
-							layout *= Matrix.Translation(0.3f, 0, 0);
+							offset = 0.3f;
 						}
 						break;
 				}
 
 				Debug.Assert(tex != null, "invalid character");
 				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(layout, m_plane.Mesh, tex));
+				layout *= Matrix.Translation(offset, 0, 0);
 			}
 		}
 

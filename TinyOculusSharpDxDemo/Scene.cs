@@ -87,7 +87,7 @@ namespace TinyOculusSharpDxDemo
 			{ 
 				Dot = drawSys.ResourceRepository.FindResource<TextureView>("dot"),
 				Numbers = numTextures,
-				Layout = Matrix.RotationYawPitchRoll(0.8f, -2.0f, 0.0f) * Matrix.Translation(0, 1.5f, 3) 
+				Layout = Matrix.RotationYawPitchRoll(1.0f, -1.5f, 0.0f) * Matrix.Translation(1.5f, 2.5f, 4.5f) 
 			});
 		}
 
