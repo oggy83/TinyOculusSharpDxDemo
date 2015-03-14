@@ -103,7 +103,6 @@ namespace TinyOculusSharpDxDemo
 			{
 				double avgDT = m_fps.GetAverageDeltaTime();
 				string text = String.Format("FPS:{0:f2}, DeltaTime:{1:f2}ms", 1.0 / avgDT, avgDT * 1000.0f);
-				drawSys.AddDrawCommand(DrawCommand.CreateDrawTextCommand(text));
 				m_numberEntity.SetNumber(1.0f / (float)avgDT);
 			}
 

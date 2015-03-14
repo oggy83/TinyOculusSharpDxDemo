@@ -30,7 +30,6 @@ namespace TinyOculusSharpDxDemo
 			m_bStereoRendering = bStereoRendering;
 			
 			m_modelPassCtrl = new DrawModelPassCtrl(m_d3d, m_repository);
-			m_fePassCtrl = new DrawFrontendPassCtrl(m_d3d, m_repository);
 
 			if (bStereoRendering)
 			{
@@ -49,7 +48,6 @@ namespace TinyOculusSharpDxDemo
 		public void Dispose()
 		{
 			m_modelPassCtrl.Dispose();
-			m_fePassCtrl.Dispose();
 		}
 
 		/// <summary>
@@ -93,10 +91,6 @@ namespace TinyOculusSharpDxDemo
 					{
 						case DrawCommandTypes.DrawModel:
 							passCtrl = m_modelPassCtrl;
-							break;
-
-						case DrawCommandTypes.DrawText:
-							passCtrl = m_fePassCtrl;
 							break;
 					}
 
@@ -149,7 +143,6 @@ namespace TinyOculusSharpDxDemo
 		private bool m_bStereoRendering;
 		
 		private DrawModelPassCtrl m_modelPassCtrl = null;
-		private DrawFrontendPassCtrl m_fePassCtrl = null;
 
 		#endregion // private members
 		

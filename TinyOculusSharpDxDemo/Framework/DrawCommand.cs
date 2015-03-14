@@ -15,7 +15,6 @@ namespace TinyOculusSharpDxDemo
 		// value is rendering order
 		Invalid = 0,
 		DrawModel,
-		DrawText,
 	}
 
 	/// <summary>
@@ -48,27 +47,6 @@ namespace TinyOculusSharpDxDemo
 		}
 
 		#endregion // DrawModel
-
-		#region DrawText
-
-		public static DrawCommand CreateDrawTextCommand(string text)
-		{
-			return new DrawCommand()
-			{
-				m_type = DrawCommandTypes.DrawText,
-				CommandData = new DrawTextCommandData()
-				{
-					m_text = text,
-				}
-			};
-		}
-
-		public DrawTextCommandData GetDrawTextData()
-		{
-			return (DrawTextCommandData)CommandData;
-		}
-
-		#endregion // DrawText
 	}
 
 	/// <summary>
@@ -79,13 +57,5 @@ namespace TinyOculusSharpDxDemo
 		public Matrix m_worldTransform;
 		public DrawSystem.MeshData m_mesh;
 		public TextureView m_texture;
-	}
-
-	/// <summary>
-	/// Command data for 'DrawText'
-	/// </summary>
-	public class DrawTextCommandData
-	{
-		public string m_text;
 	}
 }
