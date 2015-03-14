@@ -151,7 +151,6 @@ namespace TinyOculusSharpDxDemo
 			DrawSystem.WorldData data = m_world;
 			m_context.BeginScene(data);
 
-			m_commandBuffer.Sort();
 			m_context.Draw(m_commandBuffer);
 			m_commandBuffer.Clear();
 

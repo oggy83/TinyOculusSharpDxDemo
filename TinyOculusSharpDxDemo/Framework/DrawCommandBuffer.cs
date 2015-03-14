@@ -30,15 +30,6 @@ namespace TinyOculusSharpDxDemo
 			m_list.Clear();
 		}
 
-		public void Sort()
-		{
-			m_list.Sort((a, b) =>
-				{
-					// 1st. sort by DrawCommandTypes
-					return a.m_type - b.m_type;
-				});
-		}
-
 		#region private members
 
 		private List<DrawCommand> m_list = null;

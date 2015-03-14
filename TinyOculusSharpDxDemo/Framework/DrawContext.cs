@@ -25,7 +25,6 @@ namespace TinyOculusSharpDxDemo
 		{
 			m_d3d = d3d;
 			m_repository = repository;
-			m_lastCommand.m_type = DrawCommandTypes.Invalid;
 			m_hmd = hmd;
 			m_bStereoRendering = bStereoRendering;
 			
@@ -79,23 +78,7 @@ namespace TinyOculusSharpDxDemo
 
 				foreach (var command in commandBuffer.Commands)
 				{
-					if (command.m_type == DrawCommandTypes.Invalid)
-					{
-						// nothing
-						return;
-					}
-
-					// Select Render Target
-					IDrawPassCtrl passCtrl = null;
-					switch (command.m_type)
-					{
-						case DrawCommandTypes.DrawModel:
-							passCtrl = m_modelPassCtrl;
-							break;
-					}
-
-					passCtrl.ExecuteCommand(command, tmpWorldData);
-					m_lastCommand = command;
+					m_modelPassCtrl.ExecuteCommand(command, tmpWorldData);
 				}
 			}
 		}
@@ -106,7 +89,6 @@ namespace TinyOculusSharpDxDemo
 		/// <param name="data">world data</param>
 		public void BeginScene(DrawSystem.WorldData data)
 		{
-			m_lastCommand = new DrawCommand();
 			m_worldData = data;
 
 			if (m_bStereoRendering)
@@ -137,7 +119,6 @@ namespace TinyOculusSharpDxDemo
 
 		private DrawSystem.D3DData m_d3d;
 		private DrawResourceRepository m_repository = null;
-		private DrawCommand m_lastCommand;
 		private DrawSystem.WorldData m_worldData;
 		private HmdDevice m_hmd = null;
 		private bool m_bStereoRendering;

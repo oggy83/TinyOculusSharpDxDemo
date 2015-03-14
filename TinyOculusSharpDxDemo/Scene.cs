@@ -108,7 +108,7 @@ namespace TinyOculusSharpDxDemo
 
 			// draw floor
 			var floorTexture = drawSys.ResourceRepository.FindResource<TextureView>("floor");
-			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.Mesh, floorTexture));
+			drawSys.AddDrawCommand(new DrawCommand() { m_worldTransform = Matrix.Identity, m_mesh = m_floor.Mesh, m_texture = floorTexture });
 
 			// draw block entities
 			var blockTexture = drawSys.ResourceRepository.FindResource<TextureView>("block");
@@ -120,7 +120,7 @@ namespace TinyOculusSharpDxDemo
 					Matrix.RotationYawPitchRoll(angle, angle, angle) 
 					* entity.Layout
 					* Matrix.Translation((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f);
-				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, entity.Model.Mesh, blockTexture));
+				drawSys.AddDrawCommand(new DrawCommand() { m_worldTransform = worldTrans, m_mesh = entity.Model.Mesh, m_texture = blockTexture});
 			}
 
 			m_numberEntity.Draw();

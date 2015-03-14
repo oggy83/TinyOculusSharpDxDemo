@@ -101,20 +101,18 @@ namespace TinyOculusSharpDxDemo
 		/// <param name="world">world data</param>
 		public void ExecuteCommand(DrawCommand command, DrawSystem.WorldData world)
 		{
-			var commandData = command.GetDrawModelData();
-
-			commandData.m_texture.SetContext(0, m_d3d);
+			command.m_texture.SetContext(0, m_d3d);
 
 			
 			var context = m_d3d.context;
 
 			// update vertex shader resouce
-			var wvpMat = commandData.m_worldTransform * world.camera * m_proj;
+			var wvpMat = command.m_worldTransform * world.camera * m_proj;
 			var vdata = new _VertexShaderConst()
 			{
 				// hlsl is column-major memory layout, so we must transpose matrix
 				wvpMat = Matrix.Transpose(wvpMat),
-				worldMat = Matrix.Transpose(commandData.m_worldTransform),
+				worldMat = Matrix.Transpose(command.m_worldTransform),
 			};
 			context.UpdateSubresource(ref vdata, m_vcBuf);
 			context.VertexShader.SetConstantBuffer(0, m_vcBuf);
@@ -131,9 +129,9 @@ namespace TinyOculusSharpDxDemo
 			context.PixelShader.SetConstantBuffer(0, m_pcBuf);
 
 			// draw
-			m_d3d.context.InputAssembler.PrimitiveTopology = commandData.m_mesh.Topology;
-			m_d3d.context.InputAssembler.SetVertexBuffers(0, commandData.m_mesh.Buffer);
-			m_d3d.context.Draw(commandData.m_mesh.VertexCount, 0);
+			m_d3d.context.InputAssembler.PrimitiveTopology = command.m_mesh.Topology;
+			m_d3d.context.InputAssembler.SetVertexBuffers(0, command.m_mesh.Buffer);
+			m_d3d.context.Draw(command.m_mesh.VertexCount, 0);
 		}
 
 		#region private types

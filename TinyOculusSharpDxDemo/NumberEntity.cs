@@ -64,7 +64,7 @@ namespace TinyOculusSharpDxDemo
 				}
 
 				Debug.Assert(tex != null, "invalid character");
-				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(layout, m_plane.Mesh, tex));
+				drawSys.AddDrawCommand(new DrawCommand() { m_worldTransform = layout, m_mesh = m_plane.Mesh, m_texture = tex });
 				layout *= Matrix.Translation(offset, 0, 0);
 			}
 		}
