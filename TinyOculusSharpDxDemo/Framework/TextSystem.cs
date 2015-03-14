@@ -42,6 +42,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void DrawText(string text)
 		{
+			return;
 			var rect = m_renderTargetPanel.ClientRectangle;
 
 			var layout = new SharpDX.RectangleF

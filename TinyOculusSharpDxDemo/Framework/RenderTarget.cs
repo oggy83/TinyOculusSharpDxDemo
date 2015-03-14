@@ -112,7 +112,7 @@ namespace TinyOculusSharpDxDemo
 			res.ShaderResourceView = new ShaderResourceView(d3d.device, backBuffer);
 			res.TargetTexture = backBuffer;
 			res.TargetView = new RenderTargetView(d3d.device, backBuffer);
-			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer, dsvDesc);
+			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer/*, dsvDesc*/);
 			res._AddDisposable(res.ShaderResourceView);
 			res._AddDisposable(res.TargetView);
 			res._AddDisposable(res.DepthStencilView);

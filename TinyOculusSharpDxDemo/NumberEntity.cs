@@ -25,6 +25,7 @@ namespace TinyOculusSharpDxDemo
 			Debug.Assert(initParam.Numbers.Length == 10, "set texture array whitch represents 0-9 number");
 			m_initParam = initParam;
 			m_plane = DrawModel.CreateFloor(0.3f, 1.0f, Color4.White, Vector4.Zero);
+			m_text = "".ToArray();
 		}
 
 		public void Dispose()
@@ -34,20 +35,43 @@ namespace TinyOculusSharpDxDemo
 
 		public void SetNumber(float num)
 		{
-			// @todo yasut
-			//String.Format("{0:f2}", 1.0 / avgDT)
+			num = MathUtil.Clamp(num, 0, 999.99f);
+			m_text = String.Format("{0:f2}", num).ToArray();
 		}
 
 		public void Draw()
 		{
 			var drawSys = DrawSystem.GetInstance();
-			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(m_initParam.Layout, m_plane.Mesh, m_initParam.Numbers[0]));
+			Matrix layout = m_initParam.Layout;
+			foreach (char c in m_text)
+			{
+				TextureView tex = null;
+				switch (c)
+				{
+					case '.' :
+						tex = m_initParam.Dot;
+						layout *= Matrix.Translation(0.2f, 0, 0);
+						break;
+					default :
+						if ('0' <= c && c <= '9')
+						{
+							int num = (int)c - (int)'0';
+							tex = m_initParam.Numbers[num];
+							layout *= Matrix.Translation(0.3f, 0, 0);
+						}
+						break;
+				}
+
+				Debug.Assert(tex != null, "invalid character");
+				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(layout, m_plane.Mesh, tex));
+			}
 		}
 
 		#region private members
 
 		private InitParam m_initParam;
 		private DrawModel m_plane;
+		private char[] m_text;
 
 		#endregion // private members
 	}
