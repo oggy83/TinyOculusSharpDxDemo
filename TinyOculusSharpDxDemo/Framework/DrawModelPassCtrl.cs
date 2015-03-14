@@ -24,8 +24,9 @@ namespace TinyOculusSharpDxDemo
 			{
 				CullMode = CullMode.Back,
 				FillMode = FillMode.Solid,
-				IsAntialiasedLineEnabled = true,
+				IsAntialiasedLineEnabled = false,	// we do not use wireframe 
 				IsDepthClipEnabled = true,
+				IsMultisampleEnabled = false,
 			});
 
 			m_depthStencilState = new DepthStencilState(m_d3d.device, new DepthStencilStateDescription()
@@ -34,6 +35,14 @@ namespace TinyOculusSharpDxDemo
 				DepthComparison = Comparison.Less,
 				DepthWriteMask = DepthWriteMask.All,
 			});
+
+			var blendDesc = new BlendStateDescription()
+			{
+				AlphaToCoverageEnable = false,
+				IndependentBlendEnable = false,
+			};
+			blendDesc.RenderTarget[0] = new RenderTargetBlendDescription(true, BlendOption.SourceAlpha, BlendOption.InverseSourceAlpha, BlendOperation.Add, BlendOption.One, BlendOption.Zero, BlendOperation.Add, ColorWriteMaskFlags.All);
+			m_blendState = new BlendState(m_d3d.device, blendDesc);
 
 			_RegisterStandardSetting();
 
@@ -45,11 +54,13 @@ namespace TinyOculusSharpDxDemo
 			var context = m_d3d.context;
 			context.Rasterizer.State = m_rasterizerState;
 			context.OutputMerger.DepthStencilState = m_depthStencilState;
+			context.OutputMerger.BlendState = m_blendState;
 			m_d3d.device.QueryInterface<Device1>().MaximumFrameLatency = 1;
 		}
 
 		public void Dispose()
 		{
+			m_blendState.Dispose();
 			m_depthStencilState.Dispose();
 			m_rasterizerState.Dispose();
 		}
@@ -63,7 +74,8 @@ namespace TinyOculusSharpDxDemo
 			int width = renderTarget.Resolution.Width;
 			int height = renderTarget.Resolution.Height;
 			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
-			context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
+			context.OutputMerger.SetTargets(renderTarget.TargetView);
+			//context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
 			context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 			context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.5f, 0.8f, 1.0f));
 
@@ -153,6 +165,7 @@ namespace TinyOculusSharpDxDemo
 		Buffer m_pcBuf = null;
 		RasterizerState m_rasterizerState = null;
 		DepthStencilState m_depthStencilState = null;
+		BlendState m_blendState = null;
 
 		#endregion // private members
 

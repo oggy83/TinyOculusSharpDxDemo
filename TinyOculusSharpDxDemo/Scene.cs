@@ -23,10 +23,24 @@ namespace TinyOculusSharpDxDemo
 			var drawSys = DrawSystem.GetInstance();
 
 			// load textures
-			m_blockTexture = TextureView.FromFile("block", drawSys.D3D, "Image/block.png");
-			m_floorTexture = TextureView.FromFile("floor", drawSys.D3D, "Image/floor.jpg");
-			drawSys.ResourceRepository.AddResource(m_blockTexture);
-			drawSys.ResourceRepository.AddResource(m_floorTexture);
+			var textures = new List<TextureView>(new []
+			{
+				TextureView.FromFile("block", drawSys.D3D, "Image/block.png"),
+				TextureView.FromFile("dot", drawSys.D3D, "Image/dot.png"),
+				TextureView.FromFile("floor", drawSys.D3D, "Image/floor.jpg"),
+			});
+			var numTextures = new TextureView[10];
+			for (int i = 0; i < 10; ++i)
+			{
+				var name = String.Format("number_{0}", i);
+				numTextures[i] = TextureView.FromFile(name, drawSys.D3D, String.Format("Image/{0}.png", name));
+			}
+			textures.AddRange(numTextures);
+			foreach (var tex in textures)
+			{
+				drawSys.ResourceRepository.AddResource(tex);
+			}
+			
 
 			// light setting
 			drawSys.SetDirectionalLight(new DrawSystem.DirectionalLightData()
@@ -69,6 +83,12 @@ namespace TinyOculusSharpDxDemo
 			// init others
 			m_fps = new FpsCounter();
 			m_floor = DrawModel.CreateFloor(10.0f, 4.0f, Color4.White, Vector4.Zero);
+			m_numberEntity = new NumberEntity(new NumberEntity.InitParam() 
+			{ 
+				Dot = drawSys.ResourceRepository.FindResource<TextureView>("dot"),
+				Numbers = numTextures,
+				Layout = Matrix.RotationYawPitchRoll(0.8f, -2.0f, 0.0f) * Matrix.Translation(0, 1.5f, 3) 
+			});
 		}
 
         public void RenderFrame()
@@ -84,12 +104,15 @@ namespace TinyOculusSharpDxDemo
 				double avgDT = m_fps.GetAverageDeltaTime();
 				string text = String.Format("FPS:{0:f2}, DeltaTime:{1:f2}ms", 1.0 / avgDT, avgDT * 1000.0f);
 				drawSys.AddDrawCommand(DrawCommand.CreateDrawTextCommand(text));
+				m_numberEntity.SetNumber(1.0f / (float)avgDT);
 			}
 
 			// draw floor
-			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.Mesh, m_floorTexture));
+			var floorTexture = drawSys.ResourceRepository.FindResource<TextureView>("floor");
+			drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(Matrix.Identity, m_floor.Mesh, floorTexture));
 
 			// draw block entities
+			var blockTexture = drawSys.ResourceRepository.FindResource<TextureView>("block");
 			foreach (var entity in m_entityList)
 			{
 				float frame = (float)m_accTime + entity.Delay;
@@ -98,8 +121,10 @@ namespace TinyOculusSharpDxDemo
 					Matrix.RotationYawPitchRoll(angle, angle, angle) 
 					* entity.Layout
 					* Matrix.Translation((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f);
-				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, entity.Model.Mesh, m_blockTexture));
+				drawSys.AddDrawCommand(DrawCommand.CreateDrawModelCommand(worldTrans, entity.Model.Mesh, blockTexture));
 			}
+
+			m_numberEntity.Draw();
 
 			// execute draw commands
 			drawSys.ProcessDrawCommand(m_fps);
@@ -110,6 +135,7 @@ namespace TinyOculusSharpDxDemo
         /// </summary>
         public void Dispose()
         {
+			m_numberEntity.Dispose();
 			m_floor.Dispose();
 			foreach (var entity in m_entityList)
 			{
@@ -135,8 +161,7 @@ namespace TinyOculusSharpDxDemo
 		private List<_EntityData> m_entityList = new List<_EntityData>();
 		private DrawModel m_floor;
 		private double m_accTime = 0;
-		private TextureView m_blockTexture = null;
-		private TextureView m_floorTexture = null;
+		private NumberEntity m_numberEntity = null;
 
 
 		#endregion // private members
