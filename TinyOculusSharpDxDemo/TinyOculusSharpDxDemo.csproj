@@ -74,6 +74,7 @@
     <Compile Include="Framework\DrawCommand.cs" />
     <Compile Include="Framework\DrawCommandBuffer.cs" />
     <Compile Include="Framework\DrawContext.cs" />
+    <Compile Include="Framework\DrawContext.Factory.cs" />
     <Compile Include="Framework\DrawModel.cs" />
     <Compile Include="Framework\DrawModelPassCtrl.cs" />
     <Compile Include="Framework\DrawResourceRepository.cs" />
@@ -82,7 +83,9 @@
     <Compile Include="Framework\DrawUtil.cs" />
     <Compile Include="Framework\Effect.cs" />
     <Compile Include="Framework\FpsCounter.cs" />
+    <Compile Include="Framework\IDrawable.cs" />
     <Compile Include="Framework\IDrawPassCtrl.cs" />
+    <Compile Include="Framework\ModelEntity.cs" />
     <Compile Include="NumberEntity.cs" />
     <Compile Include="HmdDevice.cs" />
     <Compile Include="HmdSystem.cs" />

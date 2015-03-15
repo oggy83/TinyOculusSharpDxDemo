@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace TinyOculusSharpDxDemo
 {
-	public class NumberEntity : IDisposable
+	public class NumberEntity : IDisposable, IDrawable
 	{
 		public struct InitParam
 		{
@@ -39,8 +39,10 @@ namespace TinyOculusSharpDxDemo
 			m_text = String.Format("{0:f1}", num).ToArray();
 		}
 
-		public void Draw()
+		public DrawCommand[] Draw(DrawContext context)
 		{
+			List<DrawCommand> commands = new List<DrawCommand>();
+
 			var drawSys = DrawSystem.GetInstance();
 			Matrix layout = m_initParam.Layout;
 			foreach (char c in m_text)
@@ -49,11 +51,11 @@ namespace TinyOculusSharpDxDemo
 				float offset = 0.0f;
 				switch (c)
 				{
-					case '.' :
+					case '.':
 						tex = m_initParam.Dot;
 						offset = 0.22f;
 						break;
-					default :
+					default:
 						if ('0' <= c && c <= '9')
 						{
 							int num = (int)c - (int)'0';
@@ -64,9 +66,11 @@ namespace TinyOculusSharpDxDemo
 				}
 
 				Debug.Assert(tex != null, "invalid character");
-				drawSys.AddDrawCommand(new DrawCommand() { m_worldTransform = layout, m_mesh = m_plane.Mesh, m_texture = tex });
+				commands.Add(new DrawCommand() { m_worldTransform = layout, m_mesh = m_plane.Mesh, m_texture = tex });
 				layout *= Matrix.Translation(offset, 0, 0);
 			}
+
+			return commands.ToArray();
 		}
 
 		#region private members

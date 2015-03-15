@@ -31,6 +31,7 @@ namespace TinyOculusSharpDxDemo
 
 		static public void Dispose()
 		{
+			s_singleton.m_modelPassCtrl.Dispose();
 			s_singleton.m_hmd.Detach();
 			s_singleton.m_context.Dispose();
 			s_singleton.m_repository.Dispose();
@@ -124,7 +125,7 @@ namespace TinyOculusSharpDxDemo
 			m_hmd = hmd;
 			m_hmd.Attach(m_d3d, m_repository.GetDefaultRenderTarget());
 
-			
+			m_modelPassCtrl = new DrawModelPassCtrl(m_d3d, m_repository);
 		}
 
 		public void SetDirectionalLight(DirectionalLightData light)
@@ -141,22 +142,23 @@ namespace TinyOculusSharpDxDemo
 			m_commandBuffer.AddCommand(command);
 		}
 
-		/// <summary>
-		/// Process all draw command
-		/// </summary>
-		/// <param name="dtFpsCounter">fps counter</param>
-		/// <remarks>This method clears draw command list</remarks>
-		public void ProcessDrawCommand(FpsCounter dtFpsCounter)
+		public void AddDrawCommand(DrawCommand[] commands)
+		{
+			m_commandBuffer.AddCommand(commands);
+		}
+
+		public DrawContext BeginScene()
 		{
 			DrawSystem.WorldData data = m_world;
 			m_context.BeginScene(data);
+			return m_context;
+		}
 
-			m_context.Draw(m_commandBuffer);
+		public void EndScene()
+		{
+			m_context.Draw(m_modelPassCtrl, m_commandBuffer);
 			m_commandBuffer.Clear();
-
 			m_context.EndScene();
-			dtFpsCounter.EndFrame();
-			dtFpsCounter.BeginFrame();
 		}
 
 		#region private members
@@ -173,6 +175,8 @@ namespace TinyOculusSharpDxDemo
 		private HmdDevice m_hmd = null;
 
 		private bool m_bStereoRendering;
+
+		private DrawModelPassCtrl m_modelPassCtrl = null;
 
 		#endregion // private members
 

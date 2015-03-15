@@ -19,7 +19,7 @@ namespace TinyOculusSharpDxDemo
 	/// Change of render state is minimized by comparing new and last command,
 	/// This means that draw command sorting is important to get high performance.
 	/// </summary>
-	public class DrawContext : IDisposable
+	public partial class DrawContext : IDisposable
 	{
 		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd, bool bStereoRendering)
 		{
@@ -27,8 +27,6 @@ namespace TinyOculusSharpDxDemo
 			m_repository = repository;
 			m_hmd = hmd;
 			m_bStereoRendering = bStereoRendering;
-			
-			m_modelPassCtrl = new DrawModelPassCtrl(m_d3d, m_repository);
 
 			if (bStereoRendering)
 			{
@@ -43,17 +41,16 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		
 		public void Dispose()
 		{
-			m_modelPassCtrl.Dispose();
+			// nothing	
 		}
 
 		/// <summary>
 		/// Execute DrawCommand
 		/// </summary>
 		/// <param name="commandBuffer">sorted draw command list</param>
-		public void Draw(DrawCommandBuffer commandBuffer)
+		public void Draw(IDrawPassCtrl passCtrl, DrawCommandBuffer commandBuffer)
 		{
 			RenderTarget[] renderTargets;
 			Matrix[] eyeOffset;
@@ -71,14 +68,14 @@ namespace TinyOculusSharpDxDemo
 			for (int index = 0; index < renderTargets.Count(); ++index)
 			{
 				var renderTarget = renderTargets[index];
-				m_modelPassCtrl.StartPass(renderTarget);
+				passCtrl.StartPass(renderTarget);
 
 				DrawSystem.WorldData tmpWorldData = m_worldData;
 				tmpWorldData.camera = tmpWorldData.camera * eyeOffset[index];
 
 				foreach (var command in commandBuffer.Commands)
 				{
-					m_modelPassCtrl.ExecuteCommand(command, tmpWorldData);
+					passCtrl.ExecuteCommand(command, tmpWorldData);
 				}
 			}
 		}
@@ -122,8 +119,6 @@ namespace TinyOculusSharpDxDemo
 		private DrawSystem.WorldData m_worldData;
 		private HmdDevice m_hmd = null;
 		private bool m_bStereoRendering;
-		
-		private DrawModelPassCtrl m_modelPassCtrl = null;
 
 		#endregion // private members
 		

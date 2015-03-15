@@ -67,28 +67,41 @@ namespace TinyOculusSharpDxDemo
 						float g = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
 						float b = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
 						float speed = RandomUtil.NextFloat(rnd, 0.6f, 0.9f);
-						var box = DrawModel.CreateBox(scale, 1.0f, new Color4(r, g, b, 1.0f), Vector4.Zero);
+						var boxModel = DrawModel.CreateBox(scale, 1.0f, new Color4(r, g, b, 1.0f), Vector4.Zero);
 						var layout = Matrix.Translation(-10.0f + 2.0f * j, 2.0f + 2.0f * i, -15.0f);
-						m_entityList.Add(new _EntityData()
+						m_boxList.Add(new ModelEntity(new ModelEntity.InitParam()
 						{
-							Model = box,
+							Model = boxModel,
+							Texture = drawSys.ResourceRepository.FindResource<TextureView>("block"),
 							Layout = layout,
 							Delay = RandomUtil.NextFloat(rnd, 0.0f, 100.0f),
 							Velocity = speed * dir,
-						});
+						}));
+						m_drawModelList.Add(boxModel);
 					}
 				}
 			}
 
-			// init others
+			// create number entity
 			m_fps = new FpsCounter();
-			m_floor = DrawModel.CreateFloor(10.0f, 4.0f, Color4.White, Vector4.Zero);
-			m_numberEntity = new NumberEntity(new NumberEntity.InitParam() 
-			{ 
+			m_numberEntity = new NumberEntity(new NumberEntity.InitParam()
+			{
 				Dot = drawSys.ResourceRepository.FindResource<TextureView>("dot"),
 				Numbers = numTextures,
-				Layout = Matrix.RotationYawPitchRoll(1.0f, -1.5f, 0.0f) * Matrix.Translation(1.5f, 2.5f, 4.5f) 
+				Layout = Matrix.RotationYawPitchRoll(1.0f, -1.5f, 0.0f) * Matrix.Translation(1.5f, 2.5f, 4.5f)
 			});
+
+			// create floor entity
+			var floorModel = DrawModel.CreateFloor(10.0f, 4.0f, Color4.White, Vector4.Zero);
+			m_floor = new ModelEntity(new ModelEntity.InitParam()
+			{
+				Model = floorModel,
+				Texture = drawSys.ResourceRepository.FindResource<TextureView>("floor"),
+				Layout = Matrix.Identity,
+				Delay = 0.0f,
+				Velocity = Vector2.Zero,
+			});
+			m_drawModelList.Add(floorModel);
 		}
 
         public void RenderFrame()
@@ -96,37 +109,36 @@ namespace TinyOculusSharpDxDemo
 			double dt = m_fps.GetDeltaTime();
 			m_accTime += dt;
 
-			// draw
 			var drawSys = DrawSystem.GetInstance();
 
-			// disp fps
+			// update fps
 			{
 				double avgDT = m_fps.GetAverageDeltaTime();
 				string text = String.Format("FPS:{0:f2}, DeltaTime:{1:f2}ms", 1.0 / avgDT, avgDT * 1000.0f);
 				m_numberEntity.SetNumber(1.0f / (float)avgDT);
 			}
 
+			var context = drawSys.BeginScene();
+
 			// draw floor
-			var floorTexture = drawSys.ResourceRepository.FindResource<TextureView>("floor");
-			drawSys.AddDrawCommand(new DrawCommand() { m_worldTransform = Matrix.Identity, m_mesh = m_floor.Mesh, m_texture = floorTexture });
+			drawSys.AddDrawCommand(m_floor.Draw(context));
 
 			// draw block entities
-			var blockTexture = drawSys.ResourceRepository.FindResource<TextureView>("block");
-			foreach (var entity in m_entityList)
+			foreach (var entity in m_boxList)
 			{
 				float frame = (float)m_accTime + entity.Delay;
 				float angle = frame % (2.0f * (float)Math.PI);
-				Matrix worldTrans =
-					Matrix.RotationYawPitchRoll(angle, angle, angle) 
-					* entity.Layout
-					* Matrix.Translation((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f);
-				drawSys.AddDrawCommand(new DrawCommand() { m_worldTransform = worldTrans, m_mesh = entity.Model.Mesh, m_texture = blockTexture});
+				entity.SetPose(
+					new Vector3(angle, angle, angle),
+					new Vector3((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f));
+				drawSys.AddDrawCommand(entity.Draw(context));
 			}
 
-			m_numberEntity.Draw();
+			drawSys.AddDrawCommand(m_numberEntity.Draw(context));
 
-			// execute draw commands
-			drawSys.ProcessDrawCommand(m_fps);
+			drawSys.EndScene();
+			m_fps.EndFrame();
+			m_fps.BeginFrame();
 		}
 
         /// <summary>
@@ -136,32 +148,24 @@ namespace TinyOculusSharpDxDemo
         {
 			m_numberEntity.Dispose();
 			m_floor.Dispose();
-			foreach (var entity in m_entityList)
+			foreach (var entity in m_boxList)
 			{
-				entity.Model.Dispose();
+				entity.Dispose();
+			}
+			foreach (var model in m_drawModelList)
+			{
+				model.Dispose();
 			}
 		}
-
-		#region private types
-
-		private struct _EntityData
-		{
-			public DrawModel Model;
-			public Matrix Layout;
-			public float Delay;
-			public Vector2 Velocity;
-		}
-
-		#endregion // private types
 
 		#region private members
 
 		private FpsCounter m_fps;
-		private List<_EntityData> m_entityList = new List<_EntityData>();
-		private DrawModel m_floor;
-		private double m_accTime = 0;
+		private List<DrawModel> m_drawModelList = new List<DrawModel>();
+		private List<ModelEntity> m_boxList = new List<ModelEntity>();
+		private ModelEntity m_floor;
 		private NumberEntity m_numberEntity = null;
-
+		private double m_accTime = 0;
 
 		#endregion // private members
 	}
