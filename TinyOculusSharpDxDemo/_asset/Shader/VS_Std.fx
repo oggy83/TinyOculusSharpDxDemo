@@ -5,9 +5,14 @@
 
 cbuffer cbMain : register(b0)
 {
-	float4x4 g_wvpMat;		// word view projection matrix (row major)
 	float4x4 g_worldMat;	// word matrix (row major)
 };
+
+cbuffer cbWorld : register(b1)
+{
+	float4x4 g_vpMat;		// view projection matrix (row major)
+};
+
 
 struct VS_INPUT
 {
@@ -31,7 +36,9 @@ VS_OUTPUT main(VS_INPUT In)
 	
 	VS_OUTPUT Out;
 
-	Out.Position = mul(In.Position, g_wvpMat);
+	float4x4 wvpMat = mul(g_worldMat, g_vpMat);
+
+	Out.Position = mul(In.Position, wvpMat);
 	Out.WorldPosition = mul(In.Position, g_worldMat);
 	Out.UV1 = In.UV1;
 	Out.Color = In.Color;

@@ -41,14 +41,17 @@ namespace TinyOculusSharpDxDemo
 				}
 			}
 
-			m_vcBuf = DrawUtil.CreateConstantBuffer<_VertexShaderConst>(m_d3d);
-			m_pcBuf = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
+			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d);
+			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d);
+			m_pixConst = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
 
 		}
 
 		public void Dispose()
 		{
-			// nothing	
+			m_pixConst.Dispose();
+			m_worldVtxConst.Dispose();
+			m_mainVtxConst.Dispose();
 		}
 
 		/// <summary>
@@ -75,16 +78,7 @@ namespace TinyOculusSharpDxDemo
 				var renderTarget = renderTargets[index];
 				passCtrl.StartPass(renderTarget);
 
-				// update view-projection matrix
-				m_vpMatrix = m_worldData.camera;
-				m_vpMatrix *= eyeOffset[index];
-
-				// update projection matrix
-				int width = renderTarget.Resolution.Width;
-				int height = renderTarget.Resolution.Height;
-				Single aspect = (float)width / (float)height;
-				Single fov = (Single)Math.PI / 4;
-				m_vpMatrix *= Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
+				UpdateWorldParams(renderTarget, eyeOffset[index]);
 
 				foreach (var command in commandBuffer.Commands)
 				{
@@ -100,11 +94,11 @@ namespace TinyOculusSharpDxDemo
 		public void BeginScene(DrawSystem.WorldData data)
 		{
 			m_worldData = data;
-
 			if (m_bStereoRendering)
 			{
 				m_hmd.BeginScene();
 			}
+
 		}
 
 		/// <summary>
@@ -125,23 +119,41 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
+		public void UpdateWorldParams(RenderTarget renderTarget, Matrix eyeOffset)
+		{
+			// update view-projection matrix
+			var vpMatrix = m_worldData.camera;
+			vpMatrix *= eyeOffset;
+
+			int width = renderTarget.Resolution.Width;
+			int height = renderTarget.Resolution.Height;
+			Single aspect = (float)width / (float)height;
+			Single fov = (Single)Math.PI / 4;
+			vpMatrix *= Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
+
+			var vdata = new _WorldVertexShaderConst()
+			{
+				// hlsl is column-major memory layout, so we must transpose matrix
+				vpMat = Matrix.Transpose(vpMatrix),
+			};
+			m_d3d.context.UpdateSubresource(ref vdata, m_worldVtxConst);
+			m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+		}
+
 		public void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
 		{
 			var context = m_d3d.context;
 
 			tex.SetContext(0, m_d3d);
-
-
+			
 			// update vertex shader resouce
-			var wvpMat = worldTrans * m_vpMatrix;
-			var vdata = new _VertexShaderConst()
+			var vdata = new _MainVertexShaderConst()
 			{
 				// hlsl is column-major memory layout, so we must transpose matrix
-				wvpMat = Matrix.Transpose(wvpMat),
 				worldMat = Matrix.Transpose(worldTrans),
 			};
-			context.UpdateSubresource(ref vdata, m_vcBuf);
-			context.VertexShader.SetConstantBuffer(0, m_vcBuf);
+			context.UpdateSubresource(ref vdata, m_mainVtxConst);
+			context.VertexShader.SetConstantBuffer(0, m_mainVtxConst);
 
 			// update pixel shader resource
 			var pdata = new _PixelShaderConst()
@@ -151,8 +163,8 @@ namespace TinyOculusSharpDxDemo
 				cameraPos = new Vector4(m_worldData.camera.TranslationVector, 1.0f),
 				light1Dir = new Vector4(m_worldData.dirLight.Direction, 0.0f),
 			};
-			context.UpdateSubresource(ref pdata, m_pcBuf);
-			context.PixelShader.SetConstantBuffer(0, m_pcBuf);
+			context.UpdateSubresource(ref pdata, m_pixConst);
+			context.PixelShader.SetConstantBuffer(0, m_pixConst);
 
 			// draw
 			m_d3d.context.InputAssembler.PrimitiveTopology = mesh.Topology;
@@ -163,10 +175,15 @@ namespace TinyOculusSharpDxDemo
 		#region private types
 
 		[StructLayout(LayoutKind.Sequential, Pack = 16)]
-		private struct _VertexShaderConst
+		private struct _MainVertexShaderConst
 		{
-			public Matrix wvpMat;			// word view projection matrix
 			public Matrix worldMat;			// word matrix
+		}
+
+		[StructLayout(LayoutKind.Sequential, Pack = 16)]
+		private struct _WorldVertexShaderConst
+		{
+			public Matrix vpMat;			// view projection matrix
 		}
 
 		private struct _PixelShaderConst
@@ -186,11 +203,11 @@ namespace TinyOculusSharpDxDemo
 		private DrawSystem.WorldData m_worldData;
 		private HmdDevice m_hmd = null;
 		private bool m_bStereoRendering;
-		Matrix m_vpMatrix;
 
 		// draw param 
-		Buffer m_vcBuf = null;
-		Buffer m_pcBuf = null;
+		Buffer m_mainVtxConst = null;
+		Buffer m_worldVtxConst = null;
+		Buffer m_pixConst = null;
 
 		#endregion // private members
 		
