@@ -107,6 +107,7 @@ namespace TinyOculusSharpDxDemo
 				Dimension = DepthStencilViewDimension.Texture2D,
 				Flags = DepthStencilViewFlags.None,
 				Format = depthBuffer.Description.Format,
+				Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 1 }
 			};
 
 			res.ShaderResourceView = new ShaderResourceView(d3d.device, backBuffer);

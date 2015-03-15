@@ -46,9 +46,7 @@ namespace TinyOculusSharpDxDemo
 
 			_RegisterStandardSetting();
 
-			m_vcBuf = DrawUtil.CreateConstantBuffer<_VertexShaderConst>(m_d3d);
-			m_pcBuf = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
-
+			
 
 			// Init settings
 			var context = m_d3d.context;
@@ -79,11 +77,6 @@ namespace TinyOculusSharpDxDemo
 			context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 			context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.5f, 0.8f, 1.0f));
 
-			// update projection matrix
-			Single aspect = (float)width / (float)height;
-			Single fov = (Single)Math.PI / 4;
-			m_proj = Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
-
 			// init fixed settings
 			Effect effect = null;
 			effect = m_repository.FindResource<Effect>("Std");
@@ -94,73 +87,12 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.context.PixelShader.Set(effect.PixelShader);
 		}
 
-		/// <summary>
-		/// set render state for the indicated command
-		/// </summary>
-		/// <param name="command">draw command</param>
-		/// <param name="world">world data</param>
-		public void ExecuteCommand(DrawCommand command, DrawSystem.WorldData world)
-		{
-			command.m_texture.SetContext(0, m_d3d);
-
-			
-			var context = m_d3d.context;
-
-			// update vertex shader resouce
-			var wvpMat = command.m_worldTransform * world.camera * m_proj;
-			var vdata = new _VertexShaderConst()
-			{
-				// hlsl is column-major memory layout, so we must transpose matrix
-				wvpMat = Matrix.Transpose(wvpMat),
-				worldMat = Matrix.Transpose(command.m_worldTransform),
-			};
-			context.UpdateSubresource(ref vdata, m_vcBuf);
-			context.VertexShader.SetConstantBuffer(0, m_vcBuf);
-
-			// update pixel shader resource
-			var pdata = new _PixelShaderConst()
-			{
-				ambientCol = new Color4(world.ambientCol),
-				light1Col = new Color4(world.dirLight.Color),
-				cameraPos = new Vector4(world.camera.TranslationVector, 1.0f),
-				light1Dir = new Vector4(world.dirLight.Direction, 0.0f),
-			};
-			context.UpdateSubresource(ref pdata, m_pcBuf);
-			context.PixelShader.SetConstantBuffer(0, m_pcBuf);
-
-			// draw
-			m_d3d.context.InputAssembler.PrimitiveTopology = command.m_mesh.Topology;
-			m_d3d.context.InputAssembler.SetVertexBuffers(0, command.m_mesh.Buffer);
-			m_d3d.context.Draw(command.m_mesh.VertexCount, 0);
-		}
-
-		#region private types
-
-		[StructLayout(LayoutKind.Sequential, Pack = 16)]
-		private struct _VertexShaderConst
-		{
-			public Matrix wvpMat;			// word view projection matrix
-			public Matrix worldMat;			// word matrix
-		}
-
-		private struct _PixelShaderConst
-		{
-			public Color4 ambientCol;
-			public Color4 light1Col;	// light1 color
-			public Vector4 cameraPos;	// camera position in model coords
-			public Vector4 light1Dir;	// light1 direction in model coords
-		}
-
-		#endregion // private types
-
 		#region private members
 
 		DrawSystem.D3DData m_d3d;
 		DrawResourceRepository m_repository = null;
-		Matrix m_proj;
+		
 
-		Buffer m_vcBuf = null;
-		Buffer m_pcBuf = null;
 		RasterizerState m_rasterizerState = null;
 		DepthStencilState m_depthStencilState = null;
 		BlendState m_blendState = null;

@@ -13,11 +13,5 @@ namespace TinyOculusSharpDxDemo
 		/// <param name="renderTarget">render target</param>
 		void StartPass(RenderTarget renderTarget);
 
-		/// <summary>
-		/// set render state for the given command
-		/// </summary>
-		/// <param name="command">draw command</param>
-		/// <param name="world">world data</param>
-		void ExecuteCommand(DrawCommand command, DrawSystem.WorldData world);
 	}
 }

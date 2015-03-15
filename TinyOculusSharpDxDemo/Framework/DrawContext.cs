@@ -8,9 +8,10 @@ using SharpDX.Windows;
 using SharpDX.DXGI;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
-using Device = SharpDX.Direct3D11.Device;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Device = SharpDX.Direct3D11.Device;
+using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace TinyOculusSharpDxDemo
 {
@@ -39,6 +40,10 @@ namespace TinyOculusSharpDxDemo
 					m_repository.AddResource(renderTarget);
 				}
 			}
+
+			m_vcBuf = DrawUtil.CreateConstantBuffer<_VertexShaderConst>(m_d3d);
+			m_pcBuf = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
+
 		}
 
 		public void Dispose()
@@ -70,12 +75,20 @@ namespace TinyOculusSharpDxDemo
 				var renderTarget = renderTargets[index];
 				passCtrl.StartPass(renderTarget);
 
-				DrawSystem.WorldData tmpWorldData = m_worldData;
-				tmpWorldData.camera = tmpWorldData.camera * eyeOffset[index];
+				// update view-projection matrix
+				m_vpMatrix = m_worldData.camera;
+				m_vpMatrix *= eyeOffset[index];
+
+				// update projection matrix
+				int width = renderTarget.Resolution.Width;
+				int height = renderTarget.Resolution.Height;
+				Single aspect = (float)width / (float)height;
+				Single fov = (Single)Math.PI / 4;
+				m_vpMatrix *= Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
 
 				foreach (var command in commandBuffer.Commands)
 				{
-					passCtrl.ExecuteCommand(command, tmpWorldData);
+					SetDrawParams(command.m_worldTransform, command.m_mesh, command.m_texture);
 				}
 			}
 		}
@@ -112,6 +125,60 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
+		public void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
+		{
+			var context = m_d3d.context;
+
+			tex.SetContext(0, m_d3d);
+
+
+			// update vertex shader resouce
+			var wvpMat = worldTrans * m_vpMatrix;
+			var vdata = new _VertexShaderConst()
+			{
+				// hlsl is column-major memory layout, so we must transpose matrix
+				wvpMat = Matrix.Transpose(wvpMat),
+				worldMat = Matrix.Transpose(worldTrans),
+			};
+			context.UpdateSubresource(ref vdata, m_vcBuf);
+			context.VertexShader.SetConstantBuffer(0, m_vcBuf);
+
+			// update pixel shader resource
+			var pdata = new _PixelShaderConst()
+			{
+				ambientCol = new Color4(m_worldData.ambientCol),
+				light1Col = new Color4(m_worldData.dirLight.Color),
+				cameraPos = new Vector4(m_worldData.camera.TranslationVector, 1.0f),
+				light1Dir = new Vector4(m_worldData.dirLight.Direction, 0.0f),
+			};
+			context.UpdateSubresource(ref pdata, m_pcBuf);
+			context.PixelShader.SetConstantBuffer(0, m_pcBuf);
+
+			// draw
+			m_d3d.context.InputAssembler.PrimitiveTopology = mesh.Topology;
+			m_d3d.context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
+			m_d3d.context.Draw(mesh.VertexCount, 0);
+		}
+
+		#region private types
+
+		[StructLayout(LayoutKind.Sequential, Pack = 16)]
+		private struct _VertexShaderConst
+		{
+			public Matrix wvpMat;			// word view projection matrix
+			public Matrix worldMat;			// word matrix
+		}
+
+		private struct _PixelShaderConst
+		{
+			public Color4 ambientCol;
+			public Color4 light1Col;	// light1 color
+			public Vector4 cameraPos;	// camera position in model coords
+			public Vector4 light1Dir;	// light1 direction in model coords
+		}
+
+		#endregion // private types
+
 		#region private members
 
 		private DrawSystem.D3DData m_d3d;
@@ -119,6 +186,11 @@ namespace TinyOculusSharpDxDemo
 		private DrawSystem.WorldData m_worldData;
 		private HmdDevice m_hmd = null;
 		private bool m_bStereoRendering;
+		Matrix m_vpMatrix;
+
+		// draw param 
+		Buffer m_vcBuf = null;
+		Buffer m_pcBuf = null;
 
 		#endregion // private members
 		
