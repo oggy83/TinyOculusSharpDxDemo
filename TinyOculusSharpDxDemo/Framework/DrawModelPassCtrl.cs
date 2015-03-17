@@ -49,10 +49,6 @@ namespace TinyOculusSharpDxDemo
 			
 
 			// Init settings
-			var context = m_d3d.context;
-			context.Rasterizer.State = m_rasterizerState;
-			context.OutputMerger.DepthStencilState = m_depthStencilState;
-			context.OutputMerger.BlendState = m_blendState;
 			m_d3d.device.QueryInterface<Device1>().MaximumFrameLatency = 1;
 		}
 
@@ -66,9 +62,12 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// setup render pass
 		/// </summary>
-		public void StartPass(RenderTarget renderTarget)
+		public void StartPass(DeviceContext context, RenderTarget renderTarget)
 		{
-			var context = m_d3d.context;
+			context.Rasterizer.State = m_rasterizerState;
+			context.OutputMerger.DepthStencilState = m_depthStencilState;
+			context.OutputMerger.BlendState = m_blendState;
+
 			int width = renderTarget.Resolution.Width;
 			int height = renderTarget.Resolution.Height;
 			context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
@@ -82,9 +81,9 @@ namespace TinyOculusSharpDxDemo
 			effect = m_repository.FindResource<Effect>("Std");
 
 			// set context
-			m_d3d.context.InputAssembler.InputLayout = effect.Layout;
-			m_d3d.context.VertexShader.Set(effect.VertexShader);
-			m_d3d.context.PixelShader.Set(effect.PixelShader);
+			context.InputAssembler.InputLayout = effect.Layout;
+			context.VertexShader.Set(effect.VertexShader);
+			context.PixelShader.Set(effect.PixelShader);
 		}
 
 		#region private members

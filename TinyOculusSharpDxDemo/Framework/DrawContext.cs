@@ -31,6 +31,7 @@ namespace TinyOculusSharpDxDemo
 
 			if (bStereoRendering)
 			{
+
 				// Create render targets for each HMD eye
 				var sizeArray = hmd.EyeResolutions;
 				var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
@@ -44,11 +45,13 @@ namespace TinyOculusSharpDxDemo
 			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d);
 			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d);
 			m_pixConst = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
+			m_deferredContext = new DeviceContext(m_d3d.device);
 
 		}
 
 		public void Dispose()
 		{
+			m_deferredContext.Dispose();
 			m_pixConst.Dispose();
 			m_worldVtxConst.Dispose();
 			m_mainVtxConst.Dispose();
@@ -62,29 +65,89 @@ namespace TinyOculusSharpDxDemo
 		{
 			RenderTarget[] renderTargets;
 			Matrix[] eyeOffset;
-			if (m_bStereoRendering)
+
+			bool useDeferredContext = true;
+			if (useDeferredContext)
 			{
-				renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-				eyeOffset = m_hmd.GetEyePoses();
+				if (m_bStereoRendering)
+				{
+					renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+					eyeOffset = m_hmd.GetEyePoses();
+
+					// set right eye settings
+					UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[1]);
+
+					// make command list by deferred context
+					passCtrl.StartPass(m_deferredContext, renderTargets[0]);
+					m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+					foreach (var command in commandBuffer.Commands)
+					{
+						SetDrawParams(m_deferredContext, command.m_worldTransform, command.m_mesh, command.m_texture);
+					}
+					var commandList = m_deferredContext.FinishCommandList(false);
+
+					// render right eye image to left eye buffer
+					m_d3d.context.ExecuteCommandList(commandList, false);
+
+					// copy left eye buffer to right eye buffer
+					m_d3d.context.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
+
+					// set left eye settings
+					UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[0]);
+
+					// render left eye image to left eye buffer
+					m_d3d.context.ExecuteCommandList(commandList, false);
+
+					commandList.Dispose();
+				}
+				else
+				{
+					renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
+					eyeOffset = new[] { Matrix.Identity };
+
+					var renderTarget = renderTargets[0];
+					UpdateWorldParams(m_d3d.context, renderTarget, eyeOffset[0]);
+
+					passCtrl.StartPass(m_deferredContext, renderTarget);
+					m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+
+					foreach (var command in commandBuffer.Commands)
+					{
+						SetDrawParams(m_deferredContext, command.m_worldTransform, command.m_mesh, command.m_texture);
+					}
+
+					var commandList = m_deferredContext.FinishCommandList(false);
+					m_d3d.context.ExecuteCommandList(commandList, false);
+					commandList.Dispose();
+				}
 			}
 			else
 			{
-				renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
-				eyeOffset = new[] { Matrix.Identity };
-			}
-
-			for (int index = 0; index < renderTargets.Count(); ++index)
-			{
-				var renderTarget = renderTargets[index];
-				passCtrl.StartPass(renderTarget);
-
-				UpdateWorldParams(renderTarget, eyeOffset[index]);
-
-				foreach (var command in commandBuffer.Commands)
+				if (m_bStereoRendering)
 				{
-					SetDrawParams(command.m_worldTransform, command.m_mesh, command.m_texture);
+					renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+					eyeOffset = m_hmd.GetEyePoses();
+				}
+				else
+				{
+					renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
+					eyeOffset = new[] { Matrix.Identity };
+				}
+
+				for (int index = 0; index < renderTargets.Count(); ++index)
+				{
+					UpdateWorldParams(m_d3d.context, renderTargets[index], eyeOffset[index]);
+
+					passCtrl.StartPass(m_d3d.context, renderTargets[index]);
+					m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+
+					foreach (var command in commandBuffer.Commands)
+					{
+						SetDrawParams(m_d3d.context, command.m_worldTransform, command.m_mesh, command.m_texture);
+					}
 				}
 			}
+			
 		}
 
 		/// <summary>
@@ -119,7 +182,7 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		public void UpdateWorldParams(RenderTarget renderTarget, Matrix eyeOffset)
+		public void UpdateWorldParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
 		{
 			// update view-projection matrix
 			var vpMatrix = m_worldData.camera;
@@ -136,16 +199,14 @@ namespace TinyOculusSharpDxDemo
 				// hlsl is column-major memory layout, so we must transpose matrix
 				vpMat = Matrix.Transpose(vpMatrix),
 			};
-			m_d3d.context.UpdateSubresource(ref vdata, m_worldVtxConst);
-			m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+			context.UpdateSubresource(ref vdata, m_worldVtxConst);
+			
 		}
 
-		public void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
+		public void SetDrawParams(DeviceContext context, Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
 		{
-			var context = m_d3d.context;
+			tex.SetContext(0, context);
 
-			tex.SetContext(0, m_d3d);
-			
 			// update vertex shader resouce
 			var vdata = new _MainVertexShaderConst()
 			{
@@ -154,6 +215,7 @@ namespace TinyOculusSharpDxDemo
 			};
 			context.UpdateSubresource(ref vdata, m_mainVtxConst);
 			context.VertexShader.SetConstantBuffer(0, m_mainVtxConst);
+			
 
 			// update pixel shader resource
 			var pdata = new _PixelShaderConst()
@@ -167,9 +229,9 @@ namespace TinyOculusSharpDxDemo
 			context.PixelShader.SetConstantBuffer(0, m_pixConst);
 
 			// draw
-			m_d3d.context.InputAssembler.PrimitiveTopology = mesh.Topology;
-			m_d3d.context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
-			m_d3d.context.Draw(mesh.VertexCount, 0);
+			context.InputAssembler.PrimitiveTopology = mesh.Topology;
+			context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
+			context.Draw(mesh.VertexCount, 0);
 		}
 
 		#region private types
@@ -203,11 +265,12 @@ namespace TinyOculusSharpDxDemo
 		private DrawSystem.WorldData m_worldData;
 		private HmdDevice m_hmd = null;
 		private bool m_bStereoRendering;
+		private DeviceContext m_deferredContext = null;
 
 		// draw param 
-		Buffer m_mainVtxConst = null;
-		Buffer m_worldVtxConst = null;
-		Buffer m_pixConst = null;
+		private Buffer m_mainVtxConst = null;
+		private Buffer m_worldVtxConst = null;
+		private Buffer m_pixConst = null;
 
 		#endregion // private members
 		

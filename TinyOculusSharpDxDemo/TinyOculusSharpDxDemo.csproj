@@ -40,23 +40,11 @@
     <Reference Include="SharpDX.D3DCompiler">
       <HintPath>ExtLib\SharpDX.D3DCompiler.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX.Direct2D1">
-      <HintPath>ExtLib\SharpDX.Direct2D1.dll</HintPath>
-    </Reference>
     <Reference Include="SharpDX.Direct3D11">
       <HintPath>ExtLib\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.DXGI">
       <HintPath>ExtLib\SharpDX.DXGI.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.RawInput">
-      <HintPath>ExtLib\SharpDX.RawInput.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.XAudio2">
-      <HintPath>ExtLib\SharpDX.XAudio2.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.XInput">
-      <HintPath>ExtLib\SharpDX.XInput.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

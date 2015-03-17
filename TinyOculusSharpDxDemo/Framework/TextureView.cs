@@ -56,11 +56,11 @@ namespace TinyOculusSharpDxDemo
 		/// set texture parameters to device context
 		/// </summary>
 		/// <param name="slot">slot index</param>
-		/// <param name="d3d">d3d data</param>
-		public void SetContext(int slot, DrawSystem.D3DData d3d)
+		/// <param name="context">device context</param>
+		public void SetContext(int slot, DeviceContext context)
 		{
-			d3d.context.PixelShader.SetShaderResource(slot, View);
-			d3d.context.PixelShader.SetSampler(slot, SamplerState);
+			context.PixelShader.SetShaderResource(slot, View);
+			context.PixelShader.SetSampler(slot, SamplerState);
 		}
 	}
 }

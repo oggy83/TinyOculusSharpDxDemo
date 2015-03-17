@@ -8,10 +8,9 @@ using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
-using SharpDX.Direct2D1;
-using SharpDX.DirectWrite;
 using SharpDX.DXGI;
 using SharpDX.Windows;
+using System.Diagnostics;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Device = SharpDX.Direct3D11.Device;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
@@ -23,7 +22,7 @@ namespace TinyOculusSharpDxDemo
 		[STAThread]
 		static void Main()
 		{
-			bool bStereoRendering = false;// change to 'false' due to non-stereo rendering for debug
+			bool bStereoRendering = true;// change to 'false' due to non-stereo rendering for debug
 
 			// init oculus rift hmd system
 			HmdSystem.Initialize();
@@ -56,9 +55,18 @@ namespace TinyOculusSharpDxDemo
 				Flags = SwapChainFlags.AllowModeSwitch,
 			};
 
+			FeatureLevel[] levels = 
+			{
+				FeatureLevel.Level_11_0
+			};
+
 			Device device;
 			SwapChain swapChain;
-			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, desc, out device, out swapChain);
+			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, levels, desc, out device, out swapChain);
+
+			// Ignore all windows events 
+			var factory = swapChain.GetParent<Factory>();
+			factory.MakeWindowAssociation(form.Handle, WindowAssociationFlags.IgnoreAll);
 
 			DrawSystem.Initialize(form.GetRenderTarget().Handle, device, swapChain, hmd, bStereoRendering);
 
