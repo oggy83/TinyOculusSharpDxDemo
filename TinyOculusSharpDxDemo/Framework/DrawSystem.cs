@@ -35,7 +35,6 @@ namespace TinyOculusSharpDxDemo
 			s_singleton.m_hmd.Detach();
 			s_singleton.m_context.Dispose();
 			s_singleton.m_repository.Dispose();
-			timeEndPeriod(1);
 			s_singleton = null;
 		}
 
@@ -43,12 +42,6 @@ namespace TinyOculusSharpDxDemo
 		{
 			return s_singleton;
 		}
-
-		[DllImport("winmm.dll")]
-		public static extern int timeBeginPeriod(int uPeriod);
-
-		[DllImport("winmm.dll")]
-		public static extern int timeEndPeriod(int uPeriod);
 
 		#endregion // static
 
