@@ -18,7 +18,7 @@ namespace TinyOculusSharpDxDemo
 	public class StereoDrawContext : DrawContext
 	{
 		public StereoDrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd)
-		:　base(d3d, repository)
+		: base(d3d, repository)
 		{
 			m_hmd = hmd;
 			m_deferredContext = new DeviceContext(m_d3d.Device);
@@ -50,7 +50,7 @@ namespace TinyOculusSharpDxDemo
 			var eyeOffset = m_hmd.GetEyePoses();
 
 			// set right eye settings
-			UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
+			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
 
 			// make command list by deferred context
 			{
@@ -97,7 +97,7 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
 
 			// set left eye settings
-			UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
+			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
 
 			// render left eye image to left eye buffer
 			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);

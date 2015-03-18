@@ -73,6 +73,22 @@ namespace TinyOculusSharpDxDemo
 		virtual public void BeginScene(DrawSystem.WorldData data)
 		{
 			m_worldData = data;
+			var context = _GetContext();
+
+			// init pixel shader resource
+			var pdata = new _PixelShaderConst()
+			{
+				ambientCol = new Color4(m_worldData.ambientCol),
+				light1Col = new Color4(m_worldData.dirLight.Color),
+				cameraPos = new Vector4(m_worldData.camera.TranslationVector, 1.0f),
+				light1Dir = new Vector4(m_worldData.dirLight.Direction, 0.0f),
+			};
+			context.UpdateSubresource(ref pdata, m_pixConst);
+			
+			// bind shader 
+			context.VertexShader.SetConstantBuffer(0, m_mainVtxConst);
+			context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+			context.PixelShader.SetConstantBuffer(0, m_pixConst);
 		}
 
 		virtual public void EndScene()
@@ -81,7 +97,7 @@ namespace TinyOculusSharpDxDemo
 		}
 
 
-		public void UpdateWorldParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
+		protected void _UpdateWorldParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
 		{
 			// update view-projection matrix
 			var vpMatrix = m_worldData.camera;
@@ -102,7 +118,7 @@ namespace TinyOculusSharpDxDemo
 			
 		}
 
-		public void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
+		public void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
 		{
 			var context = _GetContext();
 			tex.SetContext(0, context);
@@ -114,20 +130,7 @@ namespace TinyOculusSharpDxDemo
 				worldMat = Matrix.Transpose(worldTrans),
 			};
 			context.UpdateSubresource(ref vdata, m_mainVtxConst);
-			context.VertexShader.SetConstantBuffer(0, m_mainVtxConst);
 			
-
-			// update pixel shader resource
-			var pdata = new _PixelShaderConst()
-			{
-				ambientCol = new Color4(m_worldData.ambientCol),
-				light1Col = new Color4(m_worldData.dirLight.Color),
-				cameraPos = new Vector4(m_worldData.camera.TranslationVector, 1.0f),
-				light1Dir = new Vector4(m_worldData.dirLight.Direction, 0.0f),
-			};
-			context.UpdateSubresource(ref pdata, m_pixConst);
-			context.PixelShader.SetConstantBuffer(0, m_pixConst);
-
 			// draw
 			context.InputAssembler.PrimitiveTopology = mesh.Topology;
 			context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);

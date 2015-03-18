@@ -33,7 +33,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			base.BeginScene(data);
 			var renderTarget = m_repository.GetDefaultRenderTarget();
-			UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
+			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
 
 			{
 				m_d3d.Device.ImmediateContext.Rasterizer.State = m_rasterizerState;
