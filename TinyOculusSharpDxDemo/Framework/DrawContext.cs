@@ -66,85 +66,48 @@ namespace TinyOculusSharpDxDemo
 			RenderTarget[] renderTargets;
 			Matrix[] eyeOffset;
 
-			bool useDeferredContext = true;
-			if (useDeferredContext)
+			if (m_bStereoRendering)
 			{
-				if (m_bStereoRendering)
+				renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+				eyeOffset = m_hmd.GetEyePoses();
+
+				// set right eye settings
+				UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[1]);
+
+				// make command list by deferred context
+				passCtrl.StartPass(m_deferredContext, renderTargets[0]);
+				m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+				foreach (var command in commandBuffer.Commands)
 				{
-					renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-					eyeOffset = m_hmd.GetEyePoses();
-
-					// set right eye settings
-					UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[1]);
-
-					// make command list by deferred context
-					passCtrl.StartPass(m_deferredContext, renderTargets[0]);
-					m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-					foreach (var command in commandBuffer.Commands)
-					{
-						SetDrawParams(m_deferredContext, command.m_worldTransform, command.m_mesh, command.m_texture);
-					}
-					var commandList = m_deferredContext.FinishCommandList(false);
-
-					// render right eye image to left eye buffer
-					m_d3d.context.ExecuteCommandList(commandList, false);
-
-					// copy left eye buffer to right eye buffer
-					m_d3d.context.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
-
-					// set left eye settings
-					UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[0]);
-
-					// render left eye image to left eye buffer
-					m_d3d.context.ExecuteCommandList(commandList, false);
-
-					commandList.Dispose();
+					SetDrawParams(m_deferredContext, command.m_worldTransform, command.m_mesh, command.m_texture);
 				}
-				else
-				{
-					renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
-					eyeOffset = new[] { Matrix.Identity };
+				var commandList = m_deferredContext.FinishCommandList(false);
 
-					var renderTarget = renderTargets[0];
-					UpdateWorldParams(m_d3d.context, renderTarget, eyeOffset[0]);
+				// render right eye image to left eye buffer
+				m_d3d.context.ExecuteCommandList(commandList, false);
 
-					passCtrl.StartPass(m_deferredContext, renderTarget);
-					m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+				// copy left eye buffer to right eye buffer
+				m_d3d.context.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
 
-					foreach (var command in commandBuffer.Commands)
-					{
-						SetDrawParams(m_deferredContext, command.m_worldTransform, command.m_mesh, command.m_texture);
-					}
+				// set left eye settings
+				UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[0]);
 
-					var commandList = m_deferredContext.FinishCommandList(false);
-					m_d3d.context.ExecuteCommandList(commandList, false);
-					commandList.Dispose();
-				}
+				// render left eye image to left eye buffer
+				m_d3d.context.ExecuteCommandList(commandList, false);
+
+				commandList.Dispose();
 			}
 			else
 			{
-				if (m_bStereoRendering)
-				{
-					renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-					eyeOffset = m_hmd.GetEyePoses();
-				}
-				else
-				{
-					renderTargets = new[] { m_repository.GetDefaultRenderTarget() };
-					eyeOffset = new[] { Matrix.Identity };
-				}
+				var renderTarget = m_repository.GetDefaultRenderTarget();
+				UpdateWorldParams(m_d3d.context, renderTarget, Matrix.Identity);
 
-				for (int index = 0; index < renderTargets.Count(); ++index)
+				passCtrl.StartPass(m_d3d.context, renderTarget);
+				m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+
+				foreach (var command in commandBuffer.Commands)
 				{
-					UpdateWorldParams(m_d3d.context, renderTargets[index], eyeOffset[index]);
-
-					passCtrl.StartPass(m_d3d.context, renderTargets[index]);
-					m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-
-					foreach (var command in commandBuffer.Commands)
-					{
-						SetDrawParams(m_d3d.context, command.m_worldTransform, command.m_mesh, command.m_texture);
-					}
+					SetDrawParams(m_d3d.context, command.m_worldTransform, command.m_mesh, command.m_texture);
 				}
 			}
 			
