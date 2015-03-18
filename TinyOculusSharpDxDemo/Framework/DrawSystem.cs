@@ -98,10 +98,9 @@ namespace TinyOculusSharpDxDemo
         {
 			m_d3d = new D3DData
 			{
-				device = device,
-				context = device.ImmediateContext,
-				swapChain = swapChain,
-				hWnd = hWnd,
+				Device = device,
+				SwapChain = swapChain,
+				WindowHandle = hWnd,
 			};
 			
 			AmbientColor = new Color3(0, 0, 0);

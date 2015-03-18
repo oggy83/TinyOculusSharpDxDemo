@@ -45,7 +45,7 @@ namespace TinyOculusSharpDxDemo
 			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d);
 			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d);
 			m_pixConst = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
-			m_deferredContext = new DeviceContext(m_d3d.device);
+			m_deferredContext = new DeviceContext(m_d3d.Device);
 
 		}
 
@@ -76,7 +76,7 @@ namespace TinyOculusSharpDxDemo
 				var eyeOffset = m_hmd.GetEyePoses();
 
 				// set right eye settings
-				UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[1]);
+				UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
 
 				// make command list by deferred context
 				passCtrl.StartPass(m_deferredContext, renderTargets[0]);
@@ -86,10 +86,10 @@ namespace TinyOculusSharpDxDemo
 			else
 			{
 				var renderTarget = m_repository.GetDefaultRenderTarget();
-				UpdateWorldParams(m_d3d.context, renderTarget, Matrix.Identity);
+				UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
 
-				passCtrl.StartPass(m_d3d.context, renderTarget);
-				m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+				passCtrl.StartPass(m_d3d.Device.ImmediateContext, renderTarget);
+				m_d3d.Device.ImmediateContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
 
 			}
 		}
@@ -107,16 +107,16 @@ namespace TinyOculusSharpDxDemo
 				var commandList = m_deferredContext.FinishCommandList(false);
 
 				// render right eye image to left eye buffer
-				m_d3d.context.ExecuteCommandList(commandList, false);
+				m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);
 
 				// copy left eye buffer to right eye buffer
-				m_d3d.context.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
+				m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
 
 				// set left eye settings
-				UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[0]);
+				UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
 
 				// render left eye image to left eye buffer
-				m_d3d.context.ExecuteCommandList(commandList, false);
+				m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);
 
 				commandList.Dispose();
 
@@ -127,7 +127,7 @@ namespace TinyOculusSharpDxDemo
 			else
 			{
 				int syncInterval = 0;// 0 => immediately return, 1 => vsync
-				m_d3d.swapChain.Present(syncInterval, PresentFlags.None);
+				m_d3d.SwapChain.Present(syncInterval, PresentFlags.None);
 			}
 		}
 

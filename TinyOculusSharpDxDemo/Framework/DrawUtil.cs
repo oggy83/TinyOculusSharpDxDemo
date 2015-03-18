@@ -22,7 +22,7 @@ namespace TinyOculusSharpDxDemo
 
 		public static Buffer CreateConstantBuffer(DrawSystem.D3DData d3d, int size)
 		{
-			return new Buffer(d3d.device, size, ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
+			return new Buffer(d3d.Device, size, ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
 		}
 
 		public static Buffer CreateVertexBuffer<Type>(DrawSystem.D3DData d3d, Type[] vertices) where Type : struct
@@ -36,7 +36,7 @@ namespace TinyOculusSharpDxDemo
 				StructureByteStride = Utilities.SizeOf<Type>(),
 				Usage = ResourceUsage.Default,
 			};
-			return Buffer.Create(d3d.device, vertices, desc);
+			return Buffer.Create(d3d.Device, vertices, desc);
 		}
 
 		/// <summary>

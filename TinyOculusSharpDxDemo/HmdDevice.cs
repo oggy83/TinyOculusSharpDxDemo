@@ -87,7 +87,7 @@ namespace TinyOculusSharpDxDemo
 		/// <param name="renderTarget">render target of back buffer</param>
 		public void Attach(DrawSystem.D3DData d3d, RenderTarget renderTarget)
 		{
-			if (!LibOVR.ovrHmd_AttachToWindow(m_handle.Ptr, d3d.hWnd, IntPtr.Zero, IntPtr.Zero))
+			if (!LibOVR.ovrHmd_AttachToWindow(m_handle.Ptr, d3d.WindowHandle, IntPtr.Zero, IntPtr.Zero))
 			{
 				MessageBox.Show("Failed to AttachToWindow()");
 				Application.Exit();
@@ -112,10 +112,10 @@ namespace TinyOculusSharpDxDemo
 			apiConfig.Header.API = LibOVR.ovrRenderAPIType.D3D11;
 			apiConfig.Header.BackBufferSize = m_handle.Value.Resolution;
 			apiConfig.Header.Multisample = 1;
-			apiConfig.Device = d3d.device.NativePointer;
-			apiConfig.DeviceContext = d3d.context.NativePointer;
+			apiConfig.Device = d3d.Device.NativePointer;
+			apiConfig.DeviceContext = d3d.Device.ImmediateContext.NativePointer;
 			apiConfig.BackBufferRT = renderTarget.TargetView.NativePointer;
-			apiConfig.SwapChain = d3d.swapChain.NativePointer;
+			apiConfig.SwapChain = d3d.SwapChain.NativePointer;
 
 			uint distCaps =
 					(uint)LibOVR.ovrDistortionCaps.Chromatic

@@ -27,8 +27,8 @@ namespace TinyOculusSharpDxDemo
 		{
 			var result = new TextureView(uid);
 
-			var texRes = Texture2D.FromFile<Texture2D>(d3d.device, filePath);
-			result.View = new ShaderResourceView(d3d.device, texRes);
+			var texRes = Texture2D.FromFile<Texture2D>(d3d.Device, filePath);
+			result.View = new ShaderResourceView(d3d.Device, texRes);
 
 			var desc = new SamplerStateDescription()
 			{
@@ -43,7 +43,7 @@ namespace TinyOculusSharpDxDemo
 				MinimumLod = 0,
 				MaximumLod = 16,
 			};
-			result.SamplerState = new SamplerState(d3d.device, desc);
+			result.SamplerState = new SamplerState(d3d.Device, desc);
 
 			result._AddDisposable(texRes);
 			result._AddDisposable(result.View);

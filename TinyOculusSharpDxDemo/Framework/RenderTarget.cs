@@ -45,8 +45,8 @@ namespace TinyOculusSharpDxDemo
 		{
 			var res = new RenderTarget("Default");
 			
-			var backBuffer = Texture2D.FromSwapChain<Texture2D>(d3d.swapChain, 0);
-			var depthBuffer = new Texture2D(d3d.device, new Texture2DDescription()
+			var backBuffer = Texture2D.FromSwapChain<Texture2D>(d3d.SwapChain, 0);
+			var depthBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
 			{
 				Format = Format.D32_Float_S8X24_UInt,
 				ArraySize = 1,
@@ -60,8 +60,8 @@ namespace TinyOculusSharpDxDemo
 				OptionFlags = ResourceOptionFlags.None
 			});
 
-			res.TargetView = new RenderTargetView(d3d.device, backBuffer);
-			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer);
+			res.TargetView = new RenderTargetView(d3d.Device, backBuffer);
+			res.DepthStencilView = new DepthStencilView(d3d.Device, depthBuffer);
 			res.ShaderResourceView = null;
 			res.TargetTexture = backBuffer;
 			res._AddDisposable(res.TargetView);
@@ -74,7 +74,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			var res = new RenderTarget(name);
 
-			var backBuffer = new Texture2D(d3d.device, new Texture2DDescription()
+			var backBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
 			{
 				Format = Format.R8G8B8A8_UNorm,
 				ArraySize = 1,
@@ -88,7 +88,7 @@ namespace TinyOculusSharpDxDemo
 				OptionFlags = ResourceOptionFlags.None
 			});
 
-			var depthBuffer = new Texture2D(d3d.device, new Texture2DDescription()
+			var depthBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
 			{
 				Format = Format.D32_Float_S8X24_UInt,
 				ArraySize = 1,
@@ -110,10 +110,10 @@ namespace TinyOculusSharpDxDemo
 				Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 1 }
 			};
 
-			res.ShaderResourceView = new ShaderResourceView(d3d.device, backBuffer);
+			res.ShaderResourceView = new ShaderResourceView(d3d.Device, backBuffer);
 			res.TargetTexture = backBuffer;
-			res.TargetView = new RenderTargetView(d3d.device, backBuffer);
-			res.DepthStencilView = new DepthStencilView(d3d.device, depthBuffer/*, dsvDesc*/);
+			res.TargetView = new RenderTargetView(d3d.Device, backBuffer);
+			res.DepthStencilView = new DepthStencilView(d3d.Device, depthBuffer/*, dsvDesc*/);
 			res._AddDisposable(res.ShaderResourceView);
 			res._AddDisposable(res.TargetView);
 			res._AddDisposable(res.DepthStencilView);

@@ -48,10 +48,9 @@ namespace TinyOculusSharpDxDemo
 
 		public struct D3DData
 		{
-			public Device device;
-			public DeviceContext context;
-			public SwapChain swapChain;
-			public IntPtr hWnd;
+			public Device Device;
+			public SwapChain SwapChain;
+			public IntPtr WindowHandle;
 		}
 
 		public struct MeshData

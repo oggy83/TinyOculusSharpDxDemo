@@ -29,7 +29,7 @@ namespace TinyOculusSharpDxDemo
 			m_repository = repository;
 			
 			// Create object
-			m_rasterizerState = new RasterizerState(m_d3d.device, new RasterizerStateDescription()
+			m_rasterizerState = new RasterizerState(m_d3d.Device, new RasterizerStateDescription()
 			{
 				CullMode = CullMode.Back,
 				FillMode = FillMode.Solid,
@@ -38,7 +38,7 @@ namespace TinyOculusSharpDxDemo
 				IsMultisampleEnabled = false,
 			});
 
-			m_depthStencilState = new DepthStencilState(m_d3d.device, new DepthStencilStateDescription()
+			m_depthStencilState = new DepthStencilState(m_d3d.Device, new DepthStencilStateDescription()
 			{
 				IsDepthEnabled = true,
 				DepthComparison = Comparison.Less,
@@ -51,14 +51,14 @@ namespace TinyOculusSharpDxDemo
 				IndependentBlendEnable = false,
 			};
 			blendDesc.RenderTarget[0] = new RenderTargetBlendDescription(true, BlendOption.SourceAlpha, BlendOption.InverseSourceAlpha, BlendOperation.Add, BlendOption.One, BlendOption.Zero, BlendOperation.Add, ColorWriteMaskFlags.All);
-			m_blendState = new BlendState(m_d3d.device, blendDesc);
+			m_blendState = new BlendState(m_d3d.Device, blendDesc);
 
 			_RegisterStandardSetting();
 
 			
 
 			// Init settings
-			m_d3d.device.QueryInterface<Device1>().MaximumFrameLatency = 1;
+			m_d3d.Device.QueryInterface<Device1>().MaximumFrameLatency = 1;
 		}
 
 		public void Dispose()

@@ -33,9 +33,9 @@ namespace TinyOculusSharpDxDemo
 			var vertexByteCode = ShaderBytecode.CompileFromFile(vertexShader, "main", "vs_4_0", ShaderFlags.Debug);
 			var pixelByteCode = ShaderBytecode.CompileFromFile(pixelShader, "main", "ps_4_0", ShaderFlags.Debug);
 
-            VertexShader = new VertexShader(d3d.device, vertexByteCode);
-            PixelShader = new PixelShader(d3d.device, pixelByteCode);
-			Layout = new InputLayout(d3d.device, ShaderSignature.GetInputSignature(vertexByteCode), inputElements);
+            VertexShader = new VertexShader(d3d.Device, vertexByteCode);
+            PixelShader = new PixelShader(d3d.Device, pixelByteCode);
+			Layout = new InputLayout(d3d.Device, ShaderSignature.GetInputSignature(vertexByteCode), inputElements);
 
 			_AddDisposable(VertexShader);
 			_AddDisposable(PixelShader);
