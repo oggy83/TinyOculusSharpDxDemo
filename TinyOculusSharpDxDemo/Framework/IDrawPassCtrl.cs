@@ -16,6 +16,11 @@ namespace TinyOculusSharpDxDemo
 {
 	public interface IDrawPassCtrl
 	{
+		DeviceContext Context
+		{
+			get;
+		}
+
 		/// <summary>
 		/// setup render path
 		/// </summary>

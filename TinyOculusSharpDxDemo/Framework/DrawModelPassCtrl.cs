@@ -14,6 +14,15 @@ namespace TinyOculusSharpDxDemo
 {
 	public class DrawModelPassCtrl : IDrawPassCtrl
 	{
+		private DeviceContext m_context;
+		public DeviceContext Context
+		{
+			get
+			{
+				return m_context;
+			}
+		}
+
 		public DrawModelPassCtrl(DrawSystem.D3DData d3d, DrawResourceRepository repository)
 		{
 			m_d3d = d3d;
@@ -64,6 +73,7 @@ namespace TinyOculusSharpDxDemo
 		/// </summary>
 		public void StartPass(DeviceContext context, RenderTarget renderTarget)
 		{
+			m_context = context;
 			context.Rasterizer.State = m_rasterizerState;
 			context.OutputMerger.DepthStencilState = m_depthStencilState;
 			context.OutputMerger.BlendState = m_blendState;

@@ -59,8 +59,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CRef.cs" />
-    <Compile Include="Framework\DrawCommand.cs" />
-    <Compile Include="Framework\DrawCommandBuffer.cs" />
     <Compile Include="Framework\DrawContext.cs" />
     <Compile Include="Framework\DrawContext.Factory.cs" />
     <Compile Include="Framework\DrawModel.cs" />

@@ -58,18 +58,22 @@ namespace TinyOculusSharpDxDemo
 		}
 
 		/// <summary>
-		/// Execute DrawCommand
+		/// Begin scene rendering
 		/// </summary>
-		/// <param name="commandBuffer">sorted draw command list</param>
-		public void Draw(IDrawPassCtrl passCtrl, DrawCommandBuffer commandBuffer)
+		/// <param name="data">world data</param>
+		public void BeginScene(DrawSystem.WorldData data, IDrawPassCtrl passCtrl)
 		{
-			RenderTarget[] renderTargets;
-			Matrix[] eyeOffset;
+			m_passCtrl = passCtrl;
+			m_worldData = data;
+			if (m_bStereoRendering)
+			{
+				m_hmd.BeginScene();
+			}
 
 			if (m_bStereoRendering)
 			{
-				renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-				eyeOffset = m_hmd.GetEyePoses();
+				var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+				var eyeOffset = m_hmd.GetEyePoses();
 
 				// set right eye settings
 				UpdateWorldParams(m_d3d.context, renderTargets[0], eyeOffset[1]);
@@ -77,10 +81,29 @@ namespace TinyOculusSharpDxDemo
 				// make command list by deferred context
 				passCtrl.StartPass(m_deferredContext, renderTargets[0]);
 				m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-				foreach (var command in commandBuffer.Commands)
-				{
-					SetDrawParams(m_deferredContext, command.m_worldTransform, command.m_mesh, command.m_texture);
-				}
+
+			}
+			else
+			{
+				var renderTarget = m_repository.GetDefaultRenderTarget();
+				UpdateWorldParams(m_d3d.context, renderTarget, Matrix.Identity);
+
+				passCtrl.StartPass(m_d3d.context, renderTarget);
+				m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+
+			}
+		}
+
+		/// <summary>
+		/// End scene rendering
+		/// </summary>
+		public void EndScene(IDrawPassCtrl passCtrl)
+		{
+			if (m_bStereoRendering)
+			{
+				var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+				var eyeOffset = m_hmd.GetEyePoses();
+
 				var commandList = m_deferredContext.FinishCommandList(false);
 
 				// render right eye image to left eye buffer
@@ -96,44 +119,7 @@ namespace TinyOculusSharpDxDemo
 				m_d3d.context.ExecuteCommandList(commandList, false);
 
 				commandList.Dispose();
-			}
-			else
-			{
-				var renderTarget = m_repository.GetDefaultRenderTarget();
-				UpdateWorldParams(m_d3d.context, renderTarget, Matrix.Identity);
 
-				passCtrl.StartPass(m_d3d.context, renderTarget);
-				m_d3d.context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-
-				foreach (var command in commandBuffer.Commands)
-				{
-					SetDrawParams(m_d3d.context, command.m_worldTransform, command.m_mesh, command.m_texture);
-				}
-			}
-			
-		}
-
-		/// <summary>
-		/// Begin scene rendering
-		/// </summary>
-		/// <param name="data">world data</param>
-		public void BeginScene(DrawSystem.WorldData data)
-		{
-			m_worldData = data;
-			if (m_bStereoRendering)
-			{
-				m_hmd.BeginScene();
-			}
-
-		}
-
-		/// <summary>
-		/// End scene rendering
-		/// </summary>
-		public void EndScene()
-		{
-			if (m_bStereoRendering)
-			{
 				var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
 				var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
 				m_hmd.EndScene(leftEyeRT, rightEyeRT);
@@ -166,8 +152,9 @@ namespace TinyOculusSharpDxDemo
 			
 		}
 
-		public void SetDrawParams(DeviceContext context, Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
+		public void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
 		{
+			var context = m_passCtrl.Context;
 			tex.SetContext(0, context);
 
 			// update vertex shader resouce
@@ -229,6 +216,7 @@ namespace TinyOculusSharpDxDemo
 		private HmdDevice m_hmd = null;
 		private bool m_bStereoRendering;
 		private DeviceContext m_deferredContext = null;
+		private IDrawPassCtrl m_passCtrl;
 
 		// draw param 
 		private Buffer m_mainVtxConst = null;

@@ -39,10 +39,8 @@ namespace TinyOculusSharpDxDemo
 			m_text = String.Format("{0:f1}", num).ToArray();
 		}
 
-		public DrawCommand[] Draw(DrawContext context)
+		public void Draw(DrawContext context)
 		{
-			List<DrawCommand> commands = new List<DrawCommand>();
-
 			var drawSys = DrawSystem.GetInstance();
 			Matrix layout = m_initParam.Layout;
 			foreach (char c in m_text)
@@ -66,11 +64,10 @@ namespace TinyOculusSharpDxDemo
 				}
 
 				Debug.Assert(tex != null, "invalid character");
-				commands.Add(new DrawCommand() { m_worldTransform = layout, m_mesh = m_plane.Mesh, m_texture = tex });
+				context.SetDrawParams(layout, m_plane.Mesh, tex);
 				layout *= Matrix.Translation(offset, 0, 0);
 			}
 
-			return commands.ToArray();
 		}
 
 		#region private members

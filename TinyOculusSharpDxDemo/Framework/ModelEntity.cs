@@ -65,11 +65,9 @@ namespace TinyOculusSharpDxDemo
 					* Matrix.Translation(offset);
 		}
 
-		public DrawCommand[] Draw(DrawContext context)
+		public void Draw(DrawContext context)
 		{
-			var commands = new DrawCommand[1];
-			commands[0] = new DrawCommand() { m_worldTransform = m_worldTrans, m_mesh = m_initParam.Model.Mesh, m_texture = m_initParam.Texture };
-			return commands;
+			context.SetDrawParams(m_worldTrans, m_initParam.Model.Mesh, m_initParam.Texture);
 		}
 
 		#region private members

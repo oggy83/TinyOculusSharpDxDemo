@@ -108,9 +108,6 @@ namespace TinyOculusSharpDxDemo
 			m_world.dirLight.Direction = new Vector3(0, 1, 0);
 			m_world.dirLight.Color = new Color3(1, 1, 1);
 
-			int capacity = 1024;
-			m_commandBuffer = new DrawCommandBuffer(capacity);
-
 			m_repository = new DrawResourceRepository(m_d3d);
 			m_context = new DrawContext(m_d3d, m_repository, hmd, bStereoRendering);
 
@@ -126,32 +123,16 @@ namespace TinyOculusSharpDxDemo
 			m_world.dirLight = light;
 		}
 
-		/// <summary>
-		/// Add draw command which is processed in current frame
-		/// </summary>
-		/// <param name="command">command</param>
-		public void AddDrawCommand(DrawCommand command)
-		{
-			m_commandBuffer.AddCommand(command);
-		}
-
-		public void AddDrawCommand(DrawCommand[] commands)
-		{
-			m_commandBuffer.AddCommand(commands);
-		}
-
 		public DrawContext BeginScene()
 		{
 			DrawSystem.WorldData data = m_world;
-			m_context.BeginScene(data);
+			m_context.BeginScene(data, m_modelPassCtrl);
 			return m_context;
 		}
 
 		public void EndScene()
 		{
-			m_context.Draw(m_modelPassCtrl, m_commandBuffer);
-			m_commandBuffer.Clear();
-			m_context.EndScene();
+			m_context.EndScene(m_modelPassCtrl);
 		}
 
 		#region private members
@@ -160,8 +141,6 @@ namespace TinyOculusSharpDxDemo
 		/// current world data
 		/// </summary>
 		private WorldData m_world;
-
-		private DrawCommandBuffer m_commandBuffer = null;
 
 		private DrawContext m_context = null;
 
