@@ -8,6 +8,6 @@ namespace TinyOculusSharpDxDemo
 {
 	public interface IDrawable
 	{
-		void Draw(DrawContext context);
+		void Draw(IDrawContext context);
 	}
 }

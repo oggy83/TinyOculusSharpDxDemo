@@ -62,7 +62,7 @@
     <Compile Include="Framework\DrawContext.cs" />
     <Compile Include="Framework\DrawContext.Factory.cs" />
     <Compile Include="Framework\DrawModel.cs" />
-    <Compile Include="Framework\DrawModelPassCtrl.cs" />
+    <Compile Include="Framework\DrawPassCtrl.cs" />
     <Compile Include="Framework\DrawResourceRepository.cs" />
     <Compile Include="Framework\DrawSystem.cs" />
     <Compile Include="Framework\DrawSystem.Type.cs" />
@@ -70,8 +70,10 @@
     <Compile Include="Framework\Effect.cs" />
     <Compile Include="Framework\FpsCounter.cs" />
     <Compile Include="Framework\IDrawable.cs" />
-    <Compile Include="Framework\IDrawPassCtrl.cs" />
+    <Compile Include="Framework\IDrawContext.cs" />
     <Compile Include="Framework\ModelEntity.cs" />
+    <Compile Include="Framework\MonoralDrawContext.cs" />
+    <Compile Include="Framework\StereoDrawContext.cs" />
     <Compile Include="NumberEntity.cs" />
     <Compile Include="HmdDevice.cs" />
     <Compile Include="HmdSystem.cs" />

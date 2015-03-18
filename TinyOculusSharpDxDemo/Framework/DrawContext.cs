@@ -20,116 +20,66 @@ namespace TinyOculusSharpDxDemo
 	/// Change of render state is minimized by comparing new and last command,
 	/// This means that draw command sorting is important to get high performance.
 	/// </summary>
-	public partial class DrawContext : IDisposable
+	public abstract partial class DrawContext : IDisposable, IDrawContext
 	{
-		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd, bool bStereoRendering)
+		public DrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository)
 		{
 			m_d3d = d3d;
 			m_repository = repository;
-			m_hmd = hmd;
-			m_bStereoRendering = bStereoRendering;
-
-			if (bStereoRendering)
-			{
-
-				// Create render targets for each HMD eye
-				var sizeArray = hmd.EyeResolutions;
-				var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
-				for (int index = 0; index < 2; ++index)
-				{
-					var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
-					m_repository.AddResource(renderTarget);
-				}
-			}
 
 			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d);
 			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d);
 			m_pixConst = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
-			m_deferredContext = new DeviceContext(m_d3d.Device);
+
+			// Create object
+			m_rasterizerState = new RasterizerState(m_d3d.Device, new RasterizerStateDescription()
+			{
+				CullMode = CullMode.Back,
+				FillMode = FillMode.Solid,
+				IsAntialiasedLineEnabled = false,	// we do not use wireframe 
+				IsDepthClipEnabled = true,
+				IsMultisampleEnabled = false,
+			});
+
+			m_depthStencilState = new DepthStencilState(m_d3d.Device, new DepthStencilStateDescription()
+			{
+				IsDepthEnabled = true,
+				DepthComparison = Comparison.Less,
+				DepthWriteMask = DepthWriteMask.All,
+			});
+
+			var blendDesc = new BlendStateDescription()
+			{
+				AlphaToCoverageEnable = false,
+				IndependentBlendEnable = false,
+			};
+			blendDesc.RenderTarget[0] = new RenderTargetBlendDescription(true, BlendOption.SourceAlpha, BlendOption.InverseSourceAlpha, BlendOperation.Add, BlendOption.One, BlendOption.Zero, BlendOperation.Add, ColorWriteMaskFlags.All);
+			m_blendState = new BlendState(m_d3d.Device, blendDesc);
+
+			_RegisterStandardSetting();
 
 		}
 
-		public void Dispose()
+		virtual public void Dispose()
 		{
-			m_deferredContext.Dispose();
 			m_pixConst.Dispose();
 			m_worldVtxConst.Dispose();
 			m_mainVtxConst.Dispose();
+			m_blendState.Dispose();
+			m_depthStencilState.Dispose();
+			m_rasterizerState.Dispose();
 		}
 
-		/// <summary>
-		/// Begin scene rendering
-		/// </summary>
-		/// <param name="data">world data</param>
-		public void BeginScene(DrawSystem.WorldData data, IDrawPassCtrl passCtrl)
+		virtual public void BeginScene(DrawSystem.WorldData data)
 		{
-			m_passCtrl = passCtrl;
 			m_worldData = data;
-			if (m_bStereoRendering)
-			{
-				m_hmd.BeginScene();
-			}
-
-			if (m_bStereoRendering)
-			{
-				var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-				var eyeOffset = m_hmd.GetEyePoses();
-
-				// set right eye settings
-				UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
-
-				// make command list by deferred context
-				passCtrl.StartPass(m_deferredContext, renderTargets[0]);
-				m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-
-			}
-			else
-			{
-				var renderTarget = m_repository.GetDefaultRenderTarget();
-				UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
-
-				passCtrl.StartPass(m_d3d.Device.ImmediateContext, renderTarget);
-				m_d3d.Device.ImmediateContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-
-			}
 		}
 
-		/// <summary>
-		/// End scene rendering
-		/// </summary>
-		public void EndScene(IDrawPassCtrl passCtrl)
+		virtual public void EndScene()
 		{
-			if (m_bStereoRendering)
-			{
-				var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-				var eyeOffset = m_hmd.GetEyePoses();
-
-				var commandList = m_deferredContext.FinishCommandList(false);
-
-				// render right eye image to left eye buffer
-				m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);
-
-				// copy left eye buffer to right eye buffer
-				m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
-
-				// set left eye settings
-				UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
-
-				// render left eye image to left eye buffer
-				m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);
-
-				commandList.Dispose();
-
-				var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
-				var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
-				m_hmd.EndScene(leftEyeRT, rightEyeRT);
-			}
-			else
-			{
-				int syncInterval = 0;// 0 => immediately return, 1 => vsync
-				m_d3d.SwapChain.Present(syncInterval, PresentFlags.None);
-			}
+			// nothing
 		}
+
 
 		public void UpdateWorldParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
 		{
@@ -154,7 +104,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
 		{
-			var context = m_passCtrl.Context;
+			var context = _GetContext();
 			tex.SetContext(0, context);
 
 			// update vertex shader resouce
@@ -184,6 +134,8 @@ namespace TinyOculusSharpDxDemo
 			context.Draw(mesh.VertexCount, 0);
 		}
 
+		abstract protected DeviceContext _GetContext();
+
 		#region private types
 
 		[StructLayout(LayoutKind.Sequential, Pack = 16)]
@@ -210,20 +162,41 @@ namespace TinyOculusSharpDxDemo
 
 		#region private members
 
-		private DrawSystem.D3DData m_d3d;
-		private DrawResourceRepository m_repository = null;
+		protected DrawSystem.D3DData m_d3d;
+		protected DrawResourceRepository m_repository = null;
 		private DrawSystem.WorldData m_worldData;
-		private HmdDevice m_hmd = null;
-		private bool m_bStereoRendering;
-		private DeviceContext m_deferredContext = null;
-		private IDrawPassCtrl m_passCtrl;
 
 		// draw param 
-		private Buffer m_mainVtxConst = null;
-		private Buffer m_worldVtxConst = null;
-		private Buffer m_pixConst = null;
+		protected Buffer m_mainVtxConst = null;
+		protected Buffer m_worldVtxConst = null;
+		protected Buffer m_pixConst = null;
+		protected RasterizerState m_rasterizerState = null;
+		protected DepthStencilState m_depthStencilState = null;
+		protected BlendState m_blendState = null;
 
 		#endregion // private members
-		
+
+		#region private methods
+
+		private void _RegisterStandardSetting()
+		{
+
+			var shader = new Effect(
+				"Std",
+				m_d3d,
+				new InputElement[]
+				{
+					new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
+					new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0),
+					new InputElement("TEXCOORD", 0, Format.R32G32_Float, 32, 0),
+					new InputElement("NORMAL", 0, Format.R32G32B32_Float, 40, 0),
+				},
+				"Shader/VS_Std.fx",
+				"Shader/PS_Std.fx");
+
+			m_repository.AddResource(shader);
+		}
+
+		#endregion // private methods
 	}
 }

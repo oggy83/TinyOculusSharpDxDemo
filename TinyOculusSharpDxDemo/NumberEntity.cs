@@ -39,7 +39,7 @@ namespace TinyOculusSharpDxDemo
 			m_text = String.Format("{0:f1}", num).ToArray();
 		}
 
-		public void Draw(DrawContext context)
+		public void Draw(IDrawContext context)
 		{
 			var drawSys = DrawSystem.GetInstance();
 			Matrix layout = m_initParam.Layout;

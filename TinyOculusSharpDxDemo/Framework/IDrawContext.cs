@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using SharpDX;
 using SharpDX.Windows;
 using SharpDX.DXGI;
@@ -14,18 +15,8 @@ using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace TinyOculusSharpDxDemo
 {
-	public interface IDrawPassCtrl
+	public interface IDrawContext
 	{
-		DeviceContext Context
-		{
-			get;
-		}
-
-		/// <summary>
-		/// setup render path
-		/// </summary>
-		/// <param name="renderTarget">render target</param>
-		void StartPass(DeviceContext context, RenderTarget renderTarget);
-
+		void SetDrawParams(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex);
 	}
 }

@@ -31,9 +31,8 @@ namespace TinyOculusSharpDxDemo
 
 		static public void Dispose()
 		{
-			s_singleton.m_modelPassCtrl.Dispose();
+			s_singleton.m_passCtrl.Dispose();
 			s_singleton.m_hmd.Detach();
-			s_singleton.m_context.Dispose();
 			s_singleton.m_repository.Dispose();
 			s_singleton = null;
 		}
@@ -108,13 +107,11 @@ namespace TinyOculusSharpDxDemo
 			m_world.dirLight.Color = new Color3(1, 1, 1);
 
 			m_repository = new DrawResourceRepository(m_d3d);
-			m_context = new DrawContext(m_d3d, m_repository, hmd, bStereoRendering);
+			m_passCtrl = new DrawPassCtrl(m_d3d, m_repository, hmd, bStereoRendering);
 
 			m_bStereoRendering = bStereoRendering;
 			m_hmd = hmd;
 			m_hmd.Attach(m_d3d, m_repository.GetDefaultRenderTarget());
-
-			m_modelPassCtrl = new DrawModelPassCtrl(m_d3d, m_repository);
 		}
 
 		public void SetDirectionalLight(DirectionalLightData light)
@@ -122,16 +119,16 @@ namespace TinyOculusSharpDxDemo
 			m_world.dirLight = light;
 		}
 
-		public DrawContext BeginScene()
+		public IDrawContext BeginScene()
 		{
 			DrawSystem.WorldData data = m_world;
-			m_context.BeginScene(data, m_modelPassCtrl);
-			return m_context;
+			m_passCtrl.StartPass(data);
+			return m_passCtrl.Context;
 		}
 
 		public void EndScene()
 		{
-			m_context.EndScene(m_modelPassCtrl);
+			m_passCtrl.EndPass();
 		}
 
 		#region private members
@@ -141,13 +138,11 @@ namespace TinyOculusSharpDxDemo
 		/// </summary>
 		private WorldData m_world;
 
-		private DrawContext m_context = null;
-
 		private HmdDevice m_hmd = null;
 
 		private bool m_bStereoRendering;
 
-		private DrawModelPassCtrl m_modelPassCtrl = null;
+		private DrawPassCtrl m_passCtrl;
 
 		#endregion // private members
 
