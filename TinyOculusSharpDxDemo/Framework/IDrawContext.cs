@@ -17,6 +17,6 @@ namespace TinyOculusSharpDxDemo
 {
 	public interface IDrawContext
 	{
-		void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex);
+		void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode);
 	}
 }

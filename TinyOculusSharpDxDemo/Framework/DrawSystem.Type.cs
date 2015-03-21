@@ -53,6 +53,12 @@ namespace TinyOculusSharpDxDemo
 			public IntPtr WindowHandle;
 		}
 
+		public enum RenderMode
+		{
+			Opaque = 0,		// disable alpha blend
+			Transparency,	// enable alpha blend
+		}
+
 		public struct MeshData
 		{
 			public int VertexCount { get; set; }

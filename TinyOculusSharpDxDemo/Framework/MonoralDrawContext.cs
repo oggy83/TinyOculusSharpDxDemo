@@ -38,15 +38,12 @@ namespace TinyOculusSharpDxDemo
 			{
 				m_d3d.Device.ImmediateContext.Rasterizer.State = m_rasterizerState;
 				m_d3d.Device.ImmediateContext.OutputMerger.DepthStencilState = m_depthStencilState;
-				m_d3d.Device.ImmediateContext.OutputMerger.BlendState = m_blendState;
 
 				var context = m_d3d.Device.ImmediateContext;
 
 				int width = renderTarget.Resolution.Width;
 				int height = renderTarget.Resolution.Height;
 				context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
-				context.OutputMerger.SetTargets(renderTarget.TargetView);// disable z-buffer
-				//context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
 				context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 				context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.5f, 0.8f, 1.0f));
 

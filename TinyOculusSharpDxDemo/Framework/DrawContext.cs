@@ -48,13 +48,14 @@ namespace TinyOculusSharpDxDemo
 				DepthWriteMask = DepthWriteMask.All,
 			});
 
-			var blendDesc = new BlendStateDescription()
+
+			var renderModes = new[] { DrawSystem.RenderMode.Opaque, DrawSystem.RenderMode.Transparency };
+			m_blendStateArray = new BlendState[renderModes.Length];
+			foreach (DrawSystem.RenderMode mode in renderModes)
 			{
-				AlphaToCoverageEnable = false,
-				IndependentBlendEnable = false,
-			};
-			blendDesc.RenderTarget[0] = new RenderTargetBlendDescription(true, BlendOption.SourceAlpha, BlendOption.InverseSourceAlpha, BlendOperation.Add, BlendOption.One, BlendOption.Zero, BlendOperation.Add, ColorWriteMaskFlags.All);
-			m_blendState = new BlendState(m_d3d.Device, blendDesc);
+				int index = (int)mode;
+				m_blendStateArray[index] = _CreateBlendState(d3d, mode);
+			}
 
 			_RegisterStandardSetting();
 
@@ -65,7 +66,10 @@ namespace TinyOculusSharpDxDemo
 			m_pixConst.Dispose();
 			m_worldVtxConst.Dispose();
 			m_mainVtxConst.Dispose();
-			m_blendState.Dispose();
+			foreach (var state in m_blendStateArray)
+			{
+				state.Dispose();
+			}
 			m_depthStencilState.Dispose();
 			m_rasterizerState.Dispose();
 		}
@@ -115,13 +119,32 @@ namespace TinyOculusSharpDxDemo
 				vpMat = Matrix.Transpose(vpMatrix),
 			};
 			context.UpdateSubresource(ref vdata, m_worldVtxConst);
-			
+
+			m_renderTarget = renderTarget;
 		}
 
-		public void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex)
+		public void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			var context = _GetContext();
 			tex.SetContext(0, context);
+
+			if (m_oldRenderMode == null || m_oldRenderMode != renderMode)
+			{
+				// update render mode
+				context.OutputMerger.BlendState = m_blendStateArray[(int)renderMode];
+				if (renderMode == DrawSystem.RenderMode.Opaque)
+				{
+					// use z-buffer
+					context.OutputMerger.SetTargets(m_renderTarget.DepthStencilView, m_renderTarget.TargetView);
+				}
+				else
+				{
+					// not use z-buffer
+					context.OutputMerger.SetTargets(m_renderTarget.TargetView);
+				}
+
+				m_oldRenderMode = renderMode;
+			}
 
 			// update vertex shader resouce
 			var vdata = new _MainVertexShaderConst()
@@ -175,7 +198,11 @@ namespace TinyOculusSharpDxDemo
 		protected Buffer m_pixConst = null;
 		protected RasterizerState m_rasterizerState = null;
 		protected DepthStencilState m_depthStencilState = null;
-		protected BlendState m_blendState = null;
+		protected BlendState[] m_blendStateArray = null;
+		protected RenderTarget m_renderTarget = null;
+
+		// previous draw setting
+		private DrawSystem.RenderMode? m_oldRenderMode = null;
 
 		#endregion // private members
 

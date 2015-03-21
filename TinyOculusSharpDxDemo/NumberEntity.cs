@@ -64,7 +64,7 @@ namespace TinyOculusSharpDxDemo
 				}
 
 				Debug.Assert(tex != null, "invalid character");
-				context.DrawModel(layout, m_plane.Mesh, tex);
+				context.DrawModel(layout, m_plane.Mesh, tex, DrawSystem.RenderMode.Transparency);
 				layout *= Matrix.Translation(offset, 0, 0);
 			}
 
