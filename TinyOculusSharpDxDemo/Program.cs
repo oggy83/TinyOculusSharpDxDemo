@@ -28,6 +28,7 @@ namespace TinyOculusSharpDxDemo
 			HmdSystem.Initialize();
 			var hmdSys = HmdSystem.GetInstance();
 			var hmd = hmdSys.DetectHmd();
+			hmd.ResetPose();
 
 			Size resolution = hmd.Resolution;
 			if (!bStereoRendering)

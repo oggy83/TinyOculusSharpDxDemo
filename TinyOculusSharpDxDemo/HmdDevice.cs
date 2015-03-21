@@ -194,6 +194,11 @@ namespace TinyOculusSharpDxDemo
 			LibOVR.ovrHmd_EndFrame(m_handle.Ptr, m_tmpEyePoses, eyeTextures);
 		}
 
+		public void ResetPose()
+		{
+			LibOVR.ovrHmd_RecenterPose(m_handle.Ptr);
+		}
+
 		
 		private static LibOVR.ovrSizei ToOvrSizei(Size size)
 		{
