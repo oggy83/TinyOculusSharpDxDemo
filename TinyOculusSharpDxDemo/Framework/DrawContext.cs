@@ -126,11 +126,17 @@ namespace TinyOculusSharpDxDemo
 		public void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			var context = _GetContext();
-			tex.SetContext(0, context);
 
-			if (m_oldRenderMode == null || m_oldRenderMode != renderMode)
+			// update texture
+			if (m_lastTexture == null || m_lastTexture.IsDisposed() || m_lastTexture != tex)
 			{
-				// update render mode
+				tex.SetContext(0, context);
+				m_lastTexture = tex;
+			}
+
+			// update render mode
+			if (m_lastRenderMode == null || m_lastRenderMode != renderMode)
+			{
 				context.OutputMerger.BlendState = m_blendStateArray[(int)renderMode];
 				if (renderMode == DrawSystem.RenderMode.Opaque)
 				{
@@ -143,7 +149,7 @@ namespace TinyOculusSharpDxDemo
 					context.OutputMerger.SetTargets(m_renderTarget.TargetView);
 				}
 
-				m_oldRenderMode = renderMode;
+				m_lastRenderMode = renderMode;
 			}
 
 			// update vertex shader resouce
@@ -154,9 +160,19 @@ namespace TinyOculusSharpDxDemo
 			};
 			context.UpdateSubresource(ref vdata, m_mainVtxConst);
 			
+			// update input assembler
+			if (m_lastTopology == null || m_lastTopology != mesh.Topology)
+			{
+				context.InputAssembler.PrimitiveTopology = mesh.Topology;
+				m_lastTopology = mesh.Topology;
+			}
+			if (m_lastVertexBuffer == null || m_lastVertexBuffer != mesh.Buffer.Buffer)
+			{
+				context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
+				m_lastVertexBuffer = mesh.Buffer.Buffer;
+			}
+
 			// draw
-			context.InputAssembler.PrimitiveTopology = mesh.Topology;
-			context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
 			context.Draw(mesh.VertexCount, 0);
 		}
 
@@ -191,18 +207,21 @@ namespace TinyOculusSharpDxDemo
 		protected DrawSystem.D3DData m_d3d;
 		protected DrawResourceRepository m_repository = null;
 		private DrawSystem.WorldData m_worldData;
+		private RenderTarget m_renderTarget = null;
 
 		// draw param 
-		protected Buffer m_mainVtxConst = null;
+		private Buffer m_mainVtxConst = null;
 		protected Buffer m_worldVtxConst = null;
-		protected Buffer m_pixConst = null;
+		private Buffer m_pixConst = null;
 		protected RasterizerState m_rasterizerState = null;
 		protected DepthStencilState m_depthStencilState = null;
-		protected BlendState[] m_blendStateArray = null;
-		protected RenderTarget m_renderTarget = null;
+		private BlendState[] m_blendStateArray = null;
 
 		// previous draw setting
-		private DrawSystem.RenderMode? m_oldRenderMode = null;
+		private DrawSystem.RenderMode? m_lastRenderMode = null;
+		private TextureView m_lastTexture = null;
+		private PrimitiveTopology? m_lastTopology = null;
+		private Buffer m_lastVertexBuffer = null;
 
 		#endregion // private members
 

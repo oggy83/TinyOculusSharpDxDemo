@@ -31,6 +31,12 @@ namespace TinyOculusSharpDxDemo
 			{
 				obj.Dispose();
 			}
+			m_isDisposed = true;
+		}
+
+		public bool IsDisposed()
+		{
+			return m_isDisposed;
 		}
 
 		/// <summary>
@@ -43,5 +49,6 @@ namespace TinyOculusSharpDxDemo
 		}
 
 		private LinkedList<IDisposable> m_disposable;
+		private bool m_isDisposed = false;
 	}
 }
