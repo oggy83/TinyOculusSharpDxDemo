@@ -107,13 +107,13 @@ namespace TinyOculusSharpDxDemo
 				Dimension = DepthStencilViewDimension.Texture2D,
 				Flags = DepthStencilViewFlags.None,
 				Format = depthBuffer.Description.Format,
-				Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 1 }
+				Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 0 }
 			};
 
 			res.ShaderResourceView = new ShaderResourceView(d3d.Device, backBuffer);
 			res.TargetTexture = backBuffer;
 			res.TargetView = new RenderTargetView(d3d.Device, backBuffer);
-			res.DepthStencilView = new DepthStencilView(d3d.Device, depthBuffer/*, dsvDesc*/);
+			res.DepthStencilView = new DepthStencilView(d3d.Device, depthBuffer, dsvDesc);
 			res._AddDisposable(res.ShaderResourceView);
 			res._AddDisposable(res.TargetView);
 			res._AddDisposable(res.DepthStencilView);
