@@ -22,6 +22,7 @@ namespace TinyOculusSharpDxDemo
 			public Matrix Layout;
 			public float Delay;
 			public Vector2 Velocity;
+			public Color4 Color;
 		}
 
 		#endregion // public types
@@ -67,7 +68,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void Draw(IDrawContext context)
 		{
-			context.DrawModel(m_worldTrans, m_initParam.Model.Mesh, m_initParam.Texture, DrawSystem.RenderMode.Opaque);
+			context.DrawModel(m_worldTrans, m_initParam.Color, m_initParam.Model.Mesh, m_initParam.Texture, DrawSystem.RenderMode.Opaque);
 		}
 
 		#region private members

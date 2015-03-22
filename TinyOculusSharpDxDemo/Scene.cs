@@ -54,6 +54,8 @@ namespace TinyOculusSharpDxDemo
 			drawSys.Camera = Matrix.LookAtLH(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up);
 
 			// create random box storm
+			var boxModel = DrawModel.CreateBox(1.0f, 1.0f, Vector4.Zero);
+			m_drawModelList.Add(boxModel);
 			var rnd = new Random();
 			var directions = new Vector2[] { new Vector2(1,0), new Vector2(-1,0), new Vector2(0,1), new Vector2(0,-1)};
 			for (int i = 0; i < 10; ++i)
@@ -67,8 +69,7 @@ namespace TinyOculusSharpDxDemo
 						float g = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
 						float b = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
 						float speed = RandomUtil.NextFloat(rnd, 0.6f, 0.9f);
-						var boxModel = DrawModel.CreateBox(scale, 1.0f, new Color4(r, g, b, 1.0f), Vector4.Zero);
-						var layout = Matrix.Translation(-10.0f + 2.0f * j, 2.0f + 2.0f * i, -15.0f);
+						var layout = Matrix.Scaling(scale) * Matrix.Translation(-10.0f + 2.0f * j, 2.0f + 2.0f * i, -15.0f);
 						m_boxList.Add(new ModelEntity(new ModelEntity.InitParam()
 						{
 							Model = boxModel,
@@ -76,8 +77,8 @@ namespace TinyOculusSharpDxDemo
 							Layout = layout,
 							Delay = RandomUtil.NextFloat(rnd, 0.0f, 100.0f),
 							Velocity = speed * dir,
+							Color = new Color4(r, g, b, 1.0f),
 						}));
-						m_drawModelList.Add(boxModel);
 					}
 				}
 			}
@@ -92,7 +93,7 @@ namespace TinyOculusSharpDxDemo
 			});
 
 			// create floor entity
-			var floorModel = DrawModel.CreateFloor(10.0f, 4.0f, Color4.White, Vector4.Zero);
+			var floorModel = DrawModel.CreateFloor(10.0f, 4.0f, Vector4.Zero);
 			m_floor = new ModelEntity(new ModelEntity.InitParam()
 			{
 				Model = floorModel,
@@ -100,6 +101,7 @@ namespace TinyOculusSharpDxDemo
 				Layout = Matrix.Identity,
 				Delay = 0.0f,
 				Velocity = Vector2.Zero,
+				Color = Color4.White,
 			});
 			m_drawModelList.Add(floorModel);
 		}

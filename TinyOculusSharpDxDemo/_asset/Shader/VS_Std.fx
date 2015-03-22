@@ -17,7 +17,6 @@ cbuffer cbWorld : register(b1)
 struct VS_INPUT
 {
 	float4 Position : POSITION;
-	float4 Color : COLOR;
 	float2 UV1 : TEXCOORD0;
 	float3 Normal : NORMAL;
 };
@@ -28,7 +27,6 @@ struct VS_OUTPUT
 	float4 WorldPosition : POSITION;
 	float2 UV1 : TEXCOORD0;
 	float3 Normal : NORMAL;
-	float4 Color : COLOR;
 };
 
 VS_OUTPUT main(VS_INPUT In)
@@ -41,7 +39,6 @@ VS_OUTPUT main(VS_INPUT In)
 	Out.Position = mul(In.Position, wvpMat);
 	Out.WorldPosition = mul(In.Position, g_worldMat);
 	Out.UV1 = In.UV1;
-	Out.Color = In.Color;
 	Out.Normal = mul(In.Normal, g_worldMat);
 	
 	return Out;

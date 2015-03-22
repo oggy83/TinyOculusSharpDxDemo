@@ -24,7 +24,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			Debug.Assert(initParam.Numbers.Length == 10, "set texture array whitch represents 0-9 number");
 			m_initParam = initParam;
-			m_plane = DrawModel.CreateFloor(0.3f, 1.0f, Color4.White, Vector4.Zero);
+			m_plane = DrawModel.CreateFloor(0.3f, 1.0f, Vector4.Zero);
 			m_text = "".ToArray();
 		}
 
@@ -64,7 +64,7 @@ namespace TinyOculusSharpDxDemo
 				}
 
 				Debug.Assert(tex != null, "invalid character");
-				context.DrawModel(layout, m_plane.Mesh, tex, DrawSystem.RenderMode.Transparency);
+				context.DrawModel(layout, Color4.White, m_plane.Mesh, tex, DrawSystem.RenderMode.Transparency);
 				layout *= Matrix.Translation(offset, 0, 0);
 			}
 

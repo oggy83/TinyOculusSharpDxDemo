@@ -47,5 +47,71 @@ namespace TinyOculusSharpDxDemo
 		
 		}
 
+		private static DepthStencilState _CreateDepthStencilState(DrawSystem.D3DData d3d, DrawSystem.RenderMode mode)
+		{
+			switch (mode)
+			{
+				case DrawSystem.RenderMode.Opaque:
+					{
+						return new DepthStencilState(d3d.Device, new DepthStencilStateDescription()
+						{
+							BackFace = new DepthStencilOperationDescription()
+							{
+								// Stencil operations if pixel is back-facing
+								DepthFailOperation = StencilOperation.Decrement,
+								FailOperation = StencilOperation.Keep,
+								PassOperation = StencilOperation.Keep,
+								Comparison = SharpDX.Direct3D11.Comparison.Always,
+							},
+							FrontFace = new DepthStencilOperationDescription()
+							{
+								// Stencil operations if pixel is front-facing
+								DepthFailOperation = StencilOperation.Increment,
+								FailOperation = StencilOperation.Keep,
+								PassOperation = StencilOperation.Keep,
+								Comparison = SharpDX.Direct3D11.Comparison.Always,
+							},
+							IsDepthEnabled = true,
+							IsStencilEnabled = false,
+							StencilReadMask = 0xff,
+							StencilWriteMask = 0xff,
+							DepthComparison = Comparison.Less,
+							DepthWriteMask = DepthWriteMask.All,
+						});
+					}
+
+				case DrawSystem.RenderMode.Transparency:
+					{
+						return new DepthStencilState(d3d.Device, new DepthStencilStateDescription()
+						{
+							BackFace = new DepthStencilOperationDescription()
+							{
+								// Stencil operations if pixel is back-facing
+								DepthFailOperation = StencilOperation.Decrement,
+								FailOperation = StencilOperation.Keep,
+								PassOperation = StencilOperation.Keep,
+								Comparison = SharpDX.Direct3D11.Comparison.Always,
+							},
+							FrontFace = new DepthStencilOperationDescription()
+							{
+								// Stencil operations if pixel is front-facing
+								DepthFailOperation = StencilOperation.Increment,
+								FailOperation = StencilOperation.Keep,
+								PassOperation = StencilOperation.Keep,
+								Comparison = SharpDX.Direct3D11.Comparison.Always,
+							},
+							IsDepthEnabled = false,	// disable depth
+							IsStencilEnabled = false,
+							StencilReadMask = 0xff,
+							StencilWriteMask = 0xff,
+							DepthComparison = Comparison.Less,
+							DepthWriteMask = DepthWriteMask.All,
+						});
+					}
+				default:
+					return null;
+			}
+		}
+
 	}
 }

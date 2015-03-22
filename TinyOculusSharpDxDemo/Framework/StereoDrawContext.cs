@@ -55,14 +55,14 @@ namespace TinyOculusSharpDxDemo
 			// make command list by deferred context
 			{
 				m_deferredContext.Rasterizer.State = m_rasterizerState;
-				m_deferredContext.OutputMerger.DepthStencilState = m_depthStencilState;
-
+				
 				var context = m_deferredContext;
 				var renderTarget = renderTargets[0];
 
 				int width = renderTarget.Resolution.Width;
 				int height = renderTarget.Resolution.Height;
 				context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
+				context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
 				context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 				context.ClearRenderTargetView(renderTarget.TargetView, new Color4(0.3f, 0.5f, 0.8f, 1.0f));
 

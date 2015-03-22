@@ -36,7 +36,6 @@ namespace TinyOculusSharpDxDemo
 		private struct _VertexDebug
 		{
 			public Vector4 Position;
-			public Color4 Color;
 			public Vector2 UV;
 			public Vector3 Normal;
 		}
@@ -53,7 +52,7 @@ namespace TinyOculusSharpDxDemo
 			m_mesh.Buffer.Buffer.Dispose();
 		}
 
-		public static DrawModel CreateBox(float geometryScale, float uvScale, Color4 color, Vector4 offset)
+		public static DrawModel CreateBox(float geometryScale, float uvScale, Vector4 offset)
 		{
 			var drawSys = DrawSystem.GetInstance();
 			var d3d = drawSys.D3D;
@@ -116,7 +115,6 @@ namespace TinyOculusSharpDxDemo
 			{
 				vertices[i].Position += offset;
 				vertices[i].Position.W = 1;
-				vertices[i].Color = color;
 			}
 
 			var model = new DrawModel();
@@ -125,7 +123,7 @@ namespace TinyOculusSharpDxDemo
 			return model;
 		}
 
-		public static DrawModel CreateFloor(float geometryScale, float uvScale, Color4 color, Vector4 offset)
+		public static DrawModel CreateFloor(float geometryScale, float uvScale, Vector4 offset)
 		{
 			var drawSys = DrawSystem.GetInstance();
 			var d3d = drawSys.D3D;
@@ -146,7 +144,6 @@ namespace TinyOculusSharpDxDemo
 			{
 				vertices[i].Position += offset;
 				vertices[i].Position.W = 1;
-				vertices[i].Color = color;
 			}
 
 			var model = new DrawModel();

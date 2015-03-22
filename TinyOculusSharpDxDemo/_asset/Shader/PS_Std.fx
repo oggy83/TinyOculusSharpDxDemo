@@ -5,6 +5,12 @@
 
 cbuffer cbMain : register(b0)
 {
+	float4 g_instanceCol;
+};
+
+
+cbuffer cbWorld : register(b1)
+{
 	float4 g_ambientCol;
 	float4 g_lightCol1;		// light1 color
 	float4 g_cameraPos;		// camera position in world coords
@@ -18,7 +24,6 @@ struct PS_INPUT
 	float4 WorldPosition : POSITION;	// position in world space
 	float2 UV1 : TEXCOORD0;				// texture uv
 	float3 Normal : NORMAL;				// normal in world space
-	float4 Color : COLOR;
 };
 
 struct PS_OUTPUT
@@ -44,7 +49,7 @@ PS_OUTPUT main(PS_INPUT In)
 	// Calc Diffuse Term
 	float4 diffLight = g_ambientCol 
 		+ max(0, dot(Normal, Light1Dir)) * g_lightCol1;
-	float4 diffCol = In.Color * diffLight * g_Diffuse1Tex.Sample(g_Diffuse1Sampler, In.UV1);
+	float4 diffCol = diffLight * g_Diffuse1Tex.Sample(g_Diffuse1Sampler, In.UV1) * g_instanceCol;
 
 	// Blinn-Phong Model
 	float3 halfVec = normalize(EyeDir + Light1Dir);

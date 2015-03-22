@@ -28,8 +28,9 @@ namespace TinyOculusSharpDxDemo
 			m_repository = repository;
 
 			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d);
+			m_mainPixConst = DrawUtil.CreateConstantBuffer<_MainPixelShaderConst>(m_d3d);
 			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d);
-			m_pixConst = DrawUtil.CreateConstantBuffer<_PixelShaderConst>(m_d3d);
+			m_worldPixConst = DrawUtil.CreateConstantBuffer<_WorldPixelShaderConst>(m_d3d);
 
 			// Create object
 			m_rasterizerState = new RasterizerState(m_d3d.Device, new RasterizerStateDescription()
@@ -41,20 +42,18 @@ namespace TinyOculusSharpDxDemo
 				IsMultisampleEnabled = false,
 			});
 
-			m_depthStencilState = new DepthStencilState(m_d3d.Device, new DepthStencilStateDescription()
-			{
-				IsDepthEnabled = true,
-				DepthComparison = Comparison.Less,
-				DepthWriteMask = DepthWriteMask.All,
-			});
-
-
 			var renderModes = new[] { DrawSystem.RenderMode.Opaque, DrawSystem.RenderMode.Transparency };
 			m_blendStateArray = new BlendState[renderModes.Length];
 			foreach (DrawSystem.RenderMode mode in renderModes)
 			{
 				int index = (int)mode;
 				m_blendStateArray[index] = _CreateBlendState(d3d, mode);
+			}
+			m_depthStencilStateArray = new DepthStencilState[renderModes.Length];
+			foreach (DrawSystem.RenderMode mode in renderModes)
+			{
+				int index = (int)mode;
+				m_depthStencilStateArray[index] = _CreateDepthStencilState(d3d, mode);
 			}
 
 			_RegisterStandardSetting();
@@ -63,14 +62,18 @@ namespace TinyOculusSharpDxDemo
 
 		virtual public void Dispose()
 		{
-			m_pixConst.Dispose();
+			m_worldPixConst.Dispose();
 			m_worldVtxConst.Dispose();
+			m_mainPixConst.Dispose();
 			m_mainVtxConst.Dispose();
 			foreach (var state in m_blendStateArray)
 			{
 				state.Dispose();
 			}
-			m_depthStencilState.Dispose();
+			foreach (var state in m_depthStencilStateArray)
+			{
+				state.Dispose();
+			}
 			m_rasterizerState.Dispose();
 		}
 
@@ -80,19 +83,20 @@ namespace TinyOculusSharpDxDemo
 			var context = _GetContext();
 
 			// init pixel shader resource
-			var pdata = new _PixelShaderConst()
+			var pdata = new _WorldPixelShaderConst()
 			{
 				ambientCol = new Color4(m_worldData.ambientCol),
 				light1Col = new Color4(m_worldData.dirLight.Color),
 				cameraPos = new Vector4(m_worldData.camera.TranslationVector, 1.0f),
 				light1Dir = new Vector4(m_worldData.dirLight.Direction, 0.0f),
 			};
-			context.UpdateSubresource(ref pdata, m_pixConst);
+			context.UpdateSubresource(ref pdata, m_worldPixConst);
 			
 			// bind shader 
 			context.VertexShader.SetConstantBuffer(0, m_mainVtxConst);
 			context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
-			context.PixelShader.SetConstantBuffer(0, m_pixConst);
+			context.PixelShader.SetConstantBuffer(0, m_mainPixConst);
+			context.PixelShader.SetConstantBuffer(1, m_worldPixConst);
 		}
 
 		virtual public void EndScene()
@@ -123,7 +127,7 @@ namespace TinyOculusSharpDxDemo
 			m_renderTarget = renderTarget;
 		}
 
-		public void DrawModel(Matrix worldTrans, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		public void DrawModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			var context = _GetContext();
 
@@ -138,16 +142,7 @@ namespace TinyOculusSharpDxDemo
 			if (m_lastRenderMode == null || m_lastRenderMode != renderMode)
 			{
 				context.OutputMerger.BlendState = m_blendStateArray[(int)renderMode];
-				if (renderMode == DrawSystem.RenderMode.Opaque)
-				{
-					// use z-buffer
-					context.OutputMerger.SetTargets(m_renderTarget.DepthStencilView, m_renderTarget.TargetView);
-				}
-				else
-				{
-					// not use z-buffer
-					context.OutputMerger.SetTargets(m_renderTarget.TargetView);
-				}
+				context.OutputMerger.DepthStencilState = m_depthStencilStateArray[(int)renderMode];
 
 				m_lastRenderMode = renderMode;
 			}
@@ -159,13 +154,20 @@ namespace TinyOculusSharpDxDemo
 				worldMat = Matrix.Transpose(worldTrans),
 			};
 			context.UpdateSubresource(ref vdata, m_mainVtxConst);
+
+			// update pixel shader resouce
+			var pdata = new _MainPixelShaderConst()
+			{
+				instanceColor = color
+			};
+			context.UpdateSubresource(ref pdata, m_mainPixConst);
 			
 			// update input assembler
-			if (m_lastTopology == null || m_lastTopology != mesh.Topology)
-			{
+			//if (m_lastTopology == null || m_lastTopology != mesh.Topology)
+			//{
 				context.InputAssembler.PrimitiveTopology = mesh.Topology;
-				m_lastTopology = mesh.Topology;
-			}
+			//	m_lastTopology = mesh.Topology;
+			//}
 			if (m_lastVertexBuffer == null || m_lastVertexBuffer != mesh.Buffer.Buffer)
 			{
 				context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
@@ -192,7 +194,14 @@ namespace TinyOculusSharpDxDemo
 			public Matrix vpMat;			// view projection matrix
 		}
 
-		private struct _PixelShaderConst
+		[StructLayout(LayoutKind.Sequential, Pack = 16)]
+		private struct _MainPixelShaderConst
+		{
+			public Color4 instanceColor;
+		}
+
+		[StructLayout(LayoutKind.Sequential, Pack = 16)]
+		private struct _WorldPixelShaderConst
 		{
 			public Color4 ambientCol;
 			public Color4 light1Col;	// light1 color
@@ -212,10 +221,11 @@ namespace TinyOculusSharpDxDemo
 		// draw param 
 		private Buffer m_mainVtxConst = null;
 		protected Buffer m_worldVtxConst = null;
-		private Buffer m_pixConst = null;
+		private Buffer m_worldPixConst = null;
+		private Buffer m_mainPixConst = null;
 		protected RasterizerState m_rasterizerState = null;
-		protected DepthStencilState m_depthStencilState = null;
 		private BlendState[] m_blendStateArray = null;
+		private DepthStencilState[] m_depthStencilStateArray = null;
 
 		// previous draw setting
 		private DrawSystem.RenderMode? m_lastRenderMode = null;
@@ -236,9 +246,8 @@ namespace TinyOculusSharpDxDemo
 				new InputElement[]
 				{
 					new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
-					new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0),
-					new InputElement("TEXCOORD", 0, Format.R32G32_Float, 32, 0),
-					new InputElement("NORMAL", 0, Format.R32G32B32_Float, 40, 0),
+					new InputElement("TEXCOORD", 0, Format.R32G32_Float, 16, 0),
+					new InputElement("NORMAL", 0, Format.R32G32B32_Float, 24, 0),
 				},
 				"Shader/VS_Std.fx",
 				"Shader/PS_Std.fx");
