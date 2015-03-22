@@ -85,10 +85,10 @@ namespace TinyOculusSharpDxDemo
 			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
 			var eyeOffset = m_hmd.GetEyePoses();
 
-			var commandList = m_deferredContext.FinishCommandList(false);
+			var commandList = m_deferredContext.FinishCommandList(true);
 
 			// render right eye image to left eye buffer
-			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);
+			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
 
 			// copy left eye buffer to right eye buffer
 			m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
@@ -97,7 +97,7 @@ namespace TinyOculusSharpDxDemo
 			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
 
 			// render left eye image to left eye buffer
-			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, false);
+			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
 
 			commandList.Dispose();
 

@@ -163,11 +163,11 @@ namespace TinyOculusSharpDxDemo
 			context.UpdateSubresource(ref pdata, m_mainPixConst);
 			
 			// update input assembler
-			//if (m_lastTopology == null || m_lastTopology != mesh.Topology)
-			//{
+			if (m_lastTopology == null || m_lastTopology != mesh.Topology)
+			{
 				context.InputAssembler.PrimitiveTopology = mesh.Topology;
-			//	m_lastTopology = mesh.Topology;
-			//}
+				m_lastTopology = mesh.Topology;
+			}
 			if (m_lastVertexBuffer == null || m_lastVertexBuffer != mesh.Buffer.Buffer)
 			{
 				context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
