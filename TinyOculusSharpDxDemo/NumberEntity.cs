@@ -35,7 +35,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void SetNumber(float num)
 		{
-			num = MathUtil.Clamp(num, 0, 999.9f);
+			num = MathUtil.Clamp(num, 0, 9099.9f);
 			m_text = String.Format("{0:f1}", num).ToArray();
 		}
 
