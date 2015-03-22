@@ -22,7 +22,7 @@ namespace TinyOculusSharpDxDemo
 		[STAThread]
 		static void Main()
 		{
-			bool bStereoRendering = false;// change to 'false' due to non-stereo rendering for debug
+			bool bStereoRendering = true;// change to 'false' due to non-stereo rendering for debug
 
 			// init oculus rift hmd system
 			HmdSystem.Initialize();
@@ -63,7 +63,11 @@ namespace TinyOculusSharpDxDemo
 
 			Device device;
 			SwapChain swapChain;
+#if DEBUG
 			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, levels, desc, out device, out swapChain);
+#else
+			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None | DeviceCreationFlags.BgraSupport, levels, desc, out device, out swapChain);
+#endif
 
 			// Ignore all windows events 
 			var factory = swapChain.GetParent<Factory>();
