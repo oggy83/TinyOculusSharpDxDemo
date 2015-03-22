@@ -90,7 +90,7 @@ namespace TinyOculusSharpDxDemo
 
 			var depthBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
 			{
-				Format = Format.D32_Float_S8X24_UInt,
+				Format = Format.D32_Float,
 				ArraySize = 1,
 				MipLevels = 1,
 				Width = width,
