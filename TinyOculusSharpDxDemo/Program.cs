@@ -64,9 +64,9 @@ namespace TinyOculusSharpDxDemo
 			Device device;
 			SwapChain swapChain;
 #if DEBUG
-			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug | DeviceCreationFlags.BgraSupport, levels, desc, out device, out swapChain);
+			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.Debug, levels, desc, out device, out swapChain);
 #else
-			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None | DeviceCreationFlags.BgraSupport, levels, desc, out device, out swapChain);
+			Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, levels, desc, out device, out swapChain);
 #endif
 
 			// Ignore all windows events 
