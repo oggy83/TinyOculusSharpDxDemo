@@ -77,7 +77,7 @@ namespace TinyOculusSharpDxDemo
 							Layout = layout,
 							Delay = RandomUtil.NextFloat(rnd, 0.0f, 100.0f),
 							Velocity = speed * dir,
-							Color = new Color4(r, g, b, 1.0f),
+							Color = new Color4(r, g, b, 1),
 						}));
 					}
 				}
@@ -124,6 +124,7 @@ namespace TinyOculusSharpDxDemo
 
 			// draw floor
 			m_floor.Draw(context);
+			context.EndDrawInstanceModel();
 
 			// draw block entities
 			foreach (var entity in m_boxList)
@@ -135,6 +136,8 @@ namespace TinyOculusSharpDxDemo
 					new Vector3((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f));
 				entity.Draw(context);
 			}
+
+			context.EndDrawInstanceModel();
 
 			m_numberEntity.Draw(context);
 

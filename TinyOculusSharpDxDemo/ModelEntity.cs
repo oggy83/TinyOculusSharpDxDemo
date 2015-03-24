@@ -68,7 +68,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void Draw(IDrawContext context)
 		{
-			context.DrawModel(m_worldTrans, m_initParam.Color, m_initParam.Model.Mesh, m_initParam.Texture, DrawSystem.RenderMode.Opaque);
+			context.DrawInstancedModel(m_worldTrans, m_initParam.Color, m_initParam.Model.Mesh, m_initParam.Texture, DrawSystem.RenderMode.Opaque);
 		}
 
 		#region private members

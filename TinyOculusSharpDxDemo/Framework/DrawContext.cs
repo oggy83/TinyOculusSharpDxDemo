@@ -27,10 +27,10 @@ namespace TinyOculusSharpDxDemo
 			m_d3d = d3d;
 			m_repository = repository;
 
-			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d);
-			m_mainPixConst = DrawUtil.CreateConstantBuffer<_MainPixelShaderConst>(m_d3d);
-			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d);
-			m_worldPixConst = DrawUtil.CreateConstantBuffer<_WorldPixelShaderConst>(m_d3d);
+			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d, m_maxInstanceCount);
+			m_mainPixConst = DrawUtil.CreateConstantBuffer<_MainPixelShaderConst>(m_d3d, 1);
+			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d, 1);
+			m_worldPixConst = DrawUtil.CreateConstantBuffer<_WorldPixelShaderConst>(m_d3d, 1);
 
 			// Create object
 			m_rasterizerState = new RasterizerState(m_d3d.Device, new RasterizerStateDescription()
@@ -58,6 +58,7 @@ namespace TinyOculusSharpDxDemo
 
 			_RegisterStandardSetting();
 
+			m_instanceMainVtxConst = new _MainVertexShaderConst[m_maxInstanceCount];
 		}
 
 		virtual public void Dispose()
@@ -97,6 +98,9 @@ namespace TinyOculusSharpDxDemo
 			context.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
 			context.PixelShader.SetConstantBuffer(0, m_mainPixConst);
 			context.PixelShader.SetConstantBuffer(1, m_worldPixConst);
+
+			m_drawCallCount = 0;
+			m_nextInstanceIndex = 0;
 		}
 
 		virtual public void EndScene()
@@ -131,6 +135,68 @@ namespace TinyOculusSharpDxDemo
 		{
 			var context = _GetContext();
 
+			_SetDrawSetting(color, mesh, tex, renderMode);
+
+			// update vertex shader resouce
+			var vdata = new _MainVertexShaderConst()
+			{
+				// hlsl is column-major memory layout, so we must transpose matrix
+				worldMat = Matrix.Transpose(worldTrans),
+			};
+			context.UpdateSubresource(ref vdata, m_mainVtxConst);
+
+			// draw
+			context.Draw(mesh.VertexCount, 0);
+			m_drawCallCount++;
+		}
+
+		public void DrawInstancedModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		{
+			var context = _GetContext();
+
+			if (m_nextInstanceIndex == 0)
+			{
+				_SetDrawSetting(color, mesh, tex, renderMode);
+			}
+
+			// hlsl is column-major memory layout, so we must transpose matrix
+			m_instanceMainVtxConst[m_nextInstanceIndex] = new _MainVertexShaderConst() { worldMat = Matrix.Transpose(worldTrans) };
+
+			m_nextInstanceIndex++;
+			if (m_nextInstanceIndex == m_maxInstanceCount)
+			{
+				// update vertex shader resouce
+				context.UpdateSubresource<_MainVertexShaderConst>(m_instanceMainVtxConst, m_mainVtxConst);
+
+				// draw
+				context.DrawInstanced(m_lastVertexCount, m_nextInstanceIndex, 0, 0);
+				m_drawCallCount++;
+
+				m_nextInstanceIndex = 0;
+			}
+
+		}
+
+		public void EndDrawInstanceModel()
+		{
+			var context = _GetContext();
+			if (m_nextInstanceIndex != 0)
+			{
+				// update vertex shader resouce
+				context.UpdateSubresource<_MainVertexShaderConst>(m_instanceMainVtxConst, m_mainVtxConst);
+
+				// draw
+				context.DrawInstanced(m_lastVertexCount, m_nextInstanceIndex, 0, 0);
+				m_drawCallCount++;
+
+				m_nextInstanceIndex = 0;
+			}
+		}
+
+		private void _SetDrawSetting(Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		{
+			var context = _GetContext();
+
 			// update texture
 			if (m_lastTexture == null || m_lastTexture.IsDisposed() || m_lastTexture != tex)
 			{
@@ -147,21 +213,13 @@ namespace TinyOculusSharpDxDemo
 				m_lastRenderMode = renderMode;
 			}
 
-			// update vertex shader resouce
-			var vdata = new _MainVertexShaderConst()
-			{
-				// hlsl is column-major memory layout, so we must transpose matrix
-				worldMat = Matrix.Transpose(worldTrans),
-			};
-			context.UpdateSubresource(ref vdata, m_mainVtxConst);
-
 			// update pixel shader resouce
 			var pdata = new _MainPixelShaderConst()
 			{
 				instanceColor = color
 			};
 			context.UpdateSubresource(ref pdata, m_mainPixConst);
-			
+
 			// update input assembler
 			if (m_lastTopology == null || m_lastTopology != mesh.Topology)
 			{
@@ -172,10 +230,8 @@ namespace TinyOculusSharpDxDemo
 			{
 				context.InputAssembler.SetVertexBuffers(0, mesh.Buffer);
 				m_lastVertexBuffer = mesh.Buffer.Buffer;
+				m_lastVertexCount = mesh.VertexCount;
 			}
-
-			// draw
-			context.Draw(mesh.VertexCount, 0);
 		}
 
 		abstract protected DeviceContext _GetContext();
@@ -217,6 +273,7 @@ namespace TinyOculusSharpDxDemo
 		protected DrawResourceRepository m_repository = null;
 		private DrawSystem.WorldData m_worldData;
 		private RenderTarget m_renderTarget = null;
+		private int m_drawCallCount = 0;
 
 		// draw param 
 		private Buffer m_mainVtxConst = null;
@@ -232,6 +289,13 @@ namespace TinyOculusSharpDxDemo
 		private TextureView m_lastTexture = null;
 		private PrimitiveTopology? m_lastTopology = null;
 		private Buffer m_lastVertexBuffer = null;
+		private int m_lastVertexCount = 0;
+
+		// DrawInstancedModel context
+		private int m_nextInstanceIndex = 0;
+		private int m_maxInstanceCount = 100;
+		private _MainVertexShaderConst[] m_instanceMainVtxConst;
+		
 
 		#endregion // private members
 

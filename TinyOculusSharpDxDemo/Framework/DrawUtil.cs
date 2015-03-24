@@ -13,11 +13,11 @@ namespace TinyOculusSharpDxDemo
 {
     public static class DrawUtil
     {
-		public static Buffer CreateConstantBuffer<Type>(DrawSystem.D3DData d3d) where Type : struct
+		public static Buffer CreateConstantBuffer<Type>(DrawSystem.D3DData d3d, int length) where Type : struct
 		{
 			int size = Utilities.SizeOf<Type>();
 			Debug.Assert(size % 16 == 0, "size of constant buffer must be aligned to 16 byte");
-			return CreateConstantBuffer(d3d, size);
+			return CreateConstantBuffer(d3d, size * length);
 		}
 
 		public static Buffer CreateConstantBuffer(DrawSystem.D3DData d3d, int size)

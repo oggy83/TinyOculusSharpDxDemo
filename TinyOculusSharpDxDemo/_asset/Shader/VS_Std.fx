@@ -3,9 +3,11 @@
  * @brief vertex shader for test
 */
 
+#define MAX_INSTANCE_COUNT 100
+
 cbuffer cbMain : register(b0)
 {
-	float4x4 g_worldMat;	// word matrix (row major)
+	float4x4 g_worldMat[MAX_INSTANCE_COUNT];	// word matrix (row major)
 };
 
 cbuffer cbWorld : register(b1)
@@ -16,6 +18,7 @@ cbuffer cbWorld : register(b1)
 
 struct VS_INPUT
 {
+	uint InstanceId : SV_InstanceID;   
 	float4 Position : POSITION;
 	float2 UV1 : TEXCOORD0;
 	float3 Normal : NORMAL;
@@ -34,12 +37,13 @@ VS_OUTPUT main(VS_INPUT In)
 	
 	VS_OUTPUT Out;
 
-	float4x4 wvpMat = mul(g_worldMat, g_vpMat);
+	float4x4 worldMat = g_worldMat[In.InstanceId];
+	float4x4 wvpMat = mul(worldMat, g_vpMat);
 
 	Out.Position = mul(In.Position, wvpMat);
-	Out.WorldPosition = mul(In.Position, g_worldMat);
+	Out.WorldPosition = mul(In.Position, worldMat);
 	Out.UV1 = In.UV1;
-	Out.Normal = mul(In.Normal, g_worldMat);
+	Out.Normal = mul(In.Normal, worldMat);
 	
 	return Out;
 }
