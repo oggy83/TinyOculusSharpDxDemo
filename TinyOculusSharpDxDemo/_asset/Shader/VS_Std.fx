@@ -18,10 +18,10 @@ cbuffer cbWorld : register(b1)
 
 struct VS_INPUT
 {
-	uint InstanceId : SV_InstanceID;   
 	float4 Position : POSITION;
 	float2 UV1 : TEXCOORD0;
 	float3 Normal : NORMAL;
+	uint InstanceId : SV_InstanceID;   
 };
 
 struct VS_OUTPUT
@@ -30,6 +30,7 @@ struct VS_OUTPUT
 	float4 WorldPosition : POSITION;
 	float2 UV1 : TEXCOORD0;
 	float3 Normal : NORMAL;
+	uint InstanceId : ID;
 };
 
 VS_OUTPUT main(VS_INPUT In)
@@ -44,6 +45,7 @@ VS_OUTPUT main(VS_INPUT In)
 	Out.WorldPosition = mul(In.Position, worldMat);
 	Out.UV1 = In.UV1;
 	Out.Normal = mul(In.Normal, worldMat);
+	Out.InstanceId = In.InstanceId;
 	
 	return Out;
 }

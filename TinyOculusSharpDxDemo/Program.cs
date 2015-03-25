@@ -22,7 +22,7 @@ namespace TinyOculusSharpDxDemo
 		[STAThread]
 		static void Main()
 		{
-			bool bStereoRendering = false;// change to 'false' due to non-stereo rendering for debug
+			bool bStereoRendering = true;// change to 'false' due to non-stereo rendering for debug
 
 			// init oculus rift hmd system
 			HmdSystem.Initialize();

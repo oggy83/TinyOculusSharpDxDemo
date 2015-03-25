@@ -3,9 +3,11 @@
  * @brief pixel shader for test
 */
 
+#define MAX_INSTANCE_COUNT 100
+
 cbuffer cbMain : register(b0)
 {
-	float4 g_instanceCol;
+	float4 g_instanceCol[MAX_INSTANCE_COUNT];	
 };
 
 
@@ -24,6 +26,7 @@ struct PS_INPUT
 	float4 WorldPosition : POSITION;	// position in world space
 	float2 UV1 : TEXCOORD0;				// texture uv
 	float3 Normal : NORMAL;				// normal in world space
+	uint InstanceId : ID;	  
 };
 
 struct PS_OUTPUT
@@ -49,7 +52,7 @@ PS_OUTPUT main(PS_INPUT In)
 	// Calc Diffuse Term
 	float4 diffLight = g_ambientCol 
 		+ max(0, dot(Normal, Light1Dir)) * g_lightCol1;
-	float4 diffCol = diffLight * g_Diffuse1Tex.Sample(g_Diffuse1Sampler, In.UV1) * g_instanceCol;
+	float4 diffCol = diffLight * g_Diffuse1Tex.Sample(g_Diffuse1Sampler, In.UV1) * g_instanceCol[In.InstanceId];
 
 	// Blinn-Phong Model
 	float3 halfVec = normalize(EyeDir + Light1Dir);

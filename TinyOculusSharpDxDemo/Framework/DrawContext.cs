@@ -28,7 +28,7 @@ namespace TinyOculusSharpDxDemo
 			m_repository = repository;
 
 			m_mainVtxConst = DrawUtil.CreateConstantBuffer<_MainVertexShaderConst>(m_d3d, m_maxInstanceCount);
-			m_mainPixConst = DrawUtil.CreateConstantBuffer<_MainPixelShaderConst>(m_d3d, 1);
+			m_mainPixConst = DrawUtil.CreateConstantBuffer<_MainPixelShaderConst>(m_d3d, m_maxInstanceCount);
 			m_worldVtxConst = DrawUtil.CreateConstantBuffer<_WorldVertexShaderConst>(m_d3d, 1);
 			m_worldPixConst = DrawUtil.CreateConstantBuffer<_WorldPixelShaderConst>(m_d3d, 1);
 
@@ -59,6 +59,7 @@ namespace TinyOculusSharpDxDemo
 			_RegisterStandardSetting();
 
 			m_instanceMainVtxConst = new _MainVertexShaderConst[m_maxInstanceCount];
+			m_instanceMainPixConst = new _MainPixelShaderConst[m_maxInstanceCount];
 		}
 
 		virtual public void Dispose()
@@ -161,12 +162,16 @@ namespace TinyOculusSharpDxDemo
 
 			// hlsl is column-major memory layout, so we must transpose matrix
 			m_instanceMainVtxConst[m_nextInstanceIndex] = new _MainVertexShaderConst() { worldMat = Matrix.Transpose(worldTrans) };
+			m_instanceMainPixConst[m_nextInstanceIndex] = new _MainPixelShaderConst() { instanceColor = color };
 
 			m_nextInstanceIndex++;
 			if (m_nextInstanceIndex == m_maxInstanceCount)
 			{
 				// update vertex shader resouce
 				context.UpdateSubresource<_MainVertexShaderConst>(m_instanceMainVtxConst, m_mainVtxConst);
+
+				// update pixel shader resouce
+				context.UpdateSubresource<_MainPixelShaderConst>(m_instanceMainPixConst, m_mainPixConst);
 
 				// draw
 				context.DrawInstanced(m_lastVertexCount, m_nextInstanceIndex, 0, 0);
@@ -295,6 +300,7 @@ namespace TinyOculusSharpDxDemo
 		private int m_nextInstanceIndex = 0;
 		private int m_maxInstanceCount = 100;
 		private _MainVertexShaderConst[] m_instanceMainVtxConst;
+		private _MainPixelShaderConst[] m_instanceMainPixConst;
 		
 
 		#endregion // private members
