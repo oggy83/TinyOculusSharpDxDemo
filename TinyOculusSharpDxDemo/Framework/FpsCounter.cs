@@ -9,13 +9,16 @@ namespace TinyOculusSharpDxDemo
 {
 	public class FpsCounter
 	{
-		private const int MaxDeltaTimeQueueCount = 100;
+		private const double AverageDeltaTimeUpdateInterval = 1.0;
 
 		public FpsCounter()
 		{
 			m_sw = new Stopwatch();
-			m_deltaTick = 0;
-			m_deltaTickQueue = new Queue<long>();
+			m_lastDeltaTick = 0;
+			m_sumDeltaTick = 0;
+			m_deltaTickCount = 0;
+			m_averageDeltaTimeUpdateTimer = 0;
+			m_lastAverageDeltaTime = 0;
 			m_sw.Start();
 		}
 
@@ -30,12 +33,22 @@ namespace TinyOculusSharpDxDemo
 			{
 				m_sw.Stop();
 				// update delta time
-				m_deltaTick = m_sw.ElapsedTicks;
-				if (m_deltaTickQueue.Count == MaxDeltaTimeQueueCount)
+				m_lastDeltaTick = m_sw.ElapsedTicks;
+
+				m_averageDeltaTimeUpdateTimer -= GetDeltaTime();
+				m_sumDeltaTick += m_lastDeltaTick;
+				m_deltaTickCount++;
+
+				if (m_averageDeltaTimeUpdateTimer < 0.0f)
 				{
-					m_deltaTickQueue.Dequeue();
+					// update average delta time
+					double avgTickCount = (double)m_sumDeltaTick / m_deltaTickCount;
+					m_lastAverageDeltaTime = avgTickCount / Stopwatch.Frequency;
+
+					m_sumDeltaTick = 0;
+					m_deltaTickCount = 0;
+					m_averageDeltaTimeUpdateTimer = AverageDeltaTimeUpdateInterval;
 				}
-				m_deltaTickQueue.Enqueue(m_deltaTick);
 			}
 		}
 
@@ -45,7 +58,7 @@ namespace TinyOculusSharpDxDemo
 		/// <returns></returns>
 		public double GetDeltaTime()
 		{
-			return (double)m_deltaTick / Stopwatch.Frequency;
+			return (double)m_lastDeltaTick / Stopwatch.Frequency;
 		}
 
 		/// <summary>
@@ -54,8 +67,7 @@ namespace TinyOculusSharpDxDemo
 		/// <returns></returns>
 		public double GetAverageDeltaTime()
 		{
-			double avgTickCount = (m_deltaTickQueue.Count == 0) ? 0 : m_deltaTickQueue.Average();
-			return avgTickCount / Stopwatch.Frequency;
+			return m_lastAverageDeltaTime;
 		}
 
 		#region private members
@@ -65,12 +77,27 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// next delta tick count
 		/// </summary>
-		private long m_deltaTick;
+		private long m_lastDeltaTick;
 
 		/// <summary>
-		/// delta tick count queue
+		/// the sum of delta time since last update of average delta time
 		/// </summary>
-		private Queue<long> m_deltaTickQueue;
+		private long m_sumDeltaTick;
+
+		/// <summary>
+		/// counter for m_sumDeltaTime
+		/// </summary>
+		private int m_deltaTickCount;
+
+		/// <summary>
+		/// timer for update average delta time
+		/// </summary>
+		private double m_averageDeltaTimeUpdateTimer = 0;
+
+		/// <summary>
+		/// value for GetAverageDeltaTime()
+		/// </summary>
+		private double m_lastAverageDeltaTime = 0;
 
 		#endregion // private members
 
