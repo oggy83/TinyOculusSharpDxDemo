@@ -43,6 +43,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			public Matrix camera;
 			public Color3 ambientCol;
+			public Color3 fogCol;
 			public DrawSystem.DirectionalLightData dirLight;
 		}
 

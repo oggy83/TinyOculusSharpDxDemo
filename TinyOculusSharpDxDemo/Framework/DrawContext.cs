@@ -88,6 +88,7 @@ namespace TinyOculusSharpDxDemo
 			var pdata = new _WorldPixelShaderConst()
 			{
 				ambientCol = new Color4(m_worldData.ambientCol),
+				fogCol = new Color4(m_worldData.fogCol),
 				light1Col = new Color4(m_worldData.dirLight.Color),
 				cameraPos = new Vector4(m_worldData.camera.TranslationVector, 1.0f),
 				light1Dir = new Vector4(m_worldData.dirLight.Direction, 0.0f),
@@ -263,7 +264,8 @@ namespace TinyOculusSharpDxDemo
 		[StructLayout(LayoutKind.Sequential, Pack = 16)]
 		private struct _WorldPixelShaderConst
 		{
-			public Color4 ambientCol;
+			public Color4 ambientCol;	// ambient color
+			public Color4 fogCol;		// fog color
 			public Color4 light1Col;	// light1 color
 			public Vector4 cameraPos;	// camera position in model coords
 			public Vector4 light1Dir;	// light1 direction in model coords

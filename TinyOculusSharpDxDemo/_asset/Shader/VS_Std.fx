@@ -35,7 +35,6 @@ struct VS_OUTPUT
 
 VS_OUTPUT main(VS_INPUT In)
 {
-	
 	VS_OUTPUT Out;
 
 	float4x4 worldMat = g_worldMat[In.InstanceId];

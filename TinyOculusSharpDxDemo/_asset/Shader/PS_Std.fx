@@ -14,6 +14,7 @@ cbuffer cbMain : register(b0)
 cbuffer cbWorld : register(b1)
 {
 	float4 g_ambientCol;
+	float4 g_fogCol;
 	float4 g_lightCol1;		// light1 color
 	float4 g_cameraPos;		// camera position in world coords
 	float4 g_light1Dir;		// light1 direction in world coords
@@ -61,6 +62,14 @@ PS_OUTPUT main(PS_INPUT In)
 
 	Out.Color.rgb = diffCol.rgb + specCol;
 	Out.Color.a = diffCol.a;
+
+	// Fog
+	float startFogDistance = 3.0f;
+	float endFogDistance = 20;
+	float3 fogColor = g_fogCol.rgb;
+	float fogFactor = clamp((In.Position.w - startFogDistance) / (endFogDistance - startFogDistance), 0, 1);
+	Out.Color.rgb = lerp(Out.Color.rgb, fogColor, fogFactor);
+
 	return Out;
 }
 

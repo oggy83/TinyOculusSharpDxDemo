@@ -50,6 +50,7 @@ namespace TinyOculusSharpDxDemo
 				Color = new Color3(0.9f, 0.9f, 0.8f),
 			});
 			drawSys.AmbientColor = new Color3(0.3f, 0.4f, 0.6f);
+			drawSys.FogColor = new Color3(0.3f, 0.5f, 0.8f);
 
 			// camera setting
 			drawSys.Camera = Matrix.LookAtLH(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up);
@@ -95,7 +96,7 @@ namespace TinyOculusSharpDxDemo
 			});
 
 			// create floor entity
-			var floorModel = DrawModel.CreateFloor(10.0f, 4.0f, Vector4.Zero);
+			var floorModel = DrawModel.CreateFloor(20.0f, 10.0f, Vector4.Zero);
 			m_floor = new ModelEntity(new ModelEntity.InitParam()
 			{
 				Model = floorModel,

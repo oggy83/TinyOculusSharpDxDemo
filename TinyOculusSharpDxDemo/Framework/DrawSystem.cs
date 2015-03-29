@@ -73,6 +73,18 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
+		public Color3 FogColor
+		{
+			get
+			{
+				return m_world.fogCol;
+			}
+			set
+			{
+				m_world.fogCol = value;
+			}
+		}
+
 		private D3DData m_d3d;
 		public D3DData D3D
 		{
