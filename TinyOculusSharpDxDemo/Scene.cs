@@ -124,9 +124,9 @@ namespace TinyOculusSharpDxDemo
 
 			// draw floor
 			m_floor.Draw(context);
-			context.EndDrawInstanceModel();
 
 			// draw block entities
+			m_boxList[0].BeginDrawInstance(context);
 			foreach (var entity in m_boxList)
 			{
 				float frame = (float)m_accTime + entity.Delay;
@@ -134,10 +134,11 @@ namespace TinyOculusSharpDxDemo
 				entity.SetPose(
 					new Vector3(angle, angle, angle),
 					new Vector3((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f));
-				entity.Draw(context);
+
+				entity.AddInstance(context);
 			}
 
-			context.EndDrawInstanceModel();
+			context.EndDrawInstance();
 
 			m_numberEntity.Draw(context);
 

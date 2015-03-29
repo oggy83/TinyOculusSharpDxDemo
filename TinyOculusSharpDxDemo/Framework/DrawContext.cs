@@ -136,7 +136,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			var context = _GetContext();
 
-			_SetDrawSetting(color, mesh, tex, renderMode);
+			_SetDrawSetting(mesh, tex, renderMode);
 
 			// update vertex shader resouce
 			var vdata = new _MainVertexShaderConst()
@@ -146,19 +146,26 @@ namespace TinyOculusSharpDxDemo
 			};
 			context.UpdateSubresource(ref vdata, m_mainVtxConst);
 
+			// update pixel shader resouce
+			var pdata = new _MainPixelShaderConst()
+			{
+				instanceColor = color
+			};
+			context.UpdateSubresource(ref pdata, m_mainPixConst);
+
 			// draw
 			context.Draw(mesh.VertexCount, 0);
 			m_drawCallCount++;
 		}
+		
+		public void BeginDrawInstance(DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		{
+			_SetDrawSetting(mesh, tex, renderMode);
+		}
 
-		public void DrawInstancedModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		public void AddInstance(Matrix worldTrans, Color4 color)
 		{
 			var context = _GetContext();
-
-			if (m_nextInstanceIndex == 0)
-			{
-				_SetDrawSetting(color, mesh, tex, renderMode);
-			}
 
 			// hlsl is column-major memory layout, so we must transpose matrix
 			m_instanceMainVtxConst[m_nextInstanceIndex] = new _MainVertexShaderConst() { worldMat = Matrix.Transpose(worldTrans) };
@@ -179,10 +186,9 @@ namespace TinyOculusSharpDxDemo
 
 				m_nextInstanceIndex = 0;
 			}
-
 		}
 
-		public void EndDrawInstanceModel()
+		public void EndDrawInstance()
 		{
 			var context = _GetContext();
 			if (m_nextInstanceIndex != 0)
@@ -198,7 +204,7 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		private void _SetDrawSetting(Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		private void _SetDrawSetting(DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			var context = _GetContext();
 
@@ -217,14 +223,7 @@ namespace TinyOculusSharpDxDemo
 
 				m_lastRenderMode = renderMode;
 			}
-
-			// update pixel shader resouce
-			var pdata = new _MainPixelShaderConst()
-			{
-				instanceColor = color
-			};
-			context.UpdateSubresource(ref pdata, m_mainPixConst);
-
+			
 			// update input assembler
 			if (m_lastTopology == null || m_lastTopology != mesh.Topology)
 			{
