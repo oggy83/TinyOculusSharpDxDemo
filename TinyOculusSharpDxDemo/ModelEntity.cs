@@ -21,8 +21,9 @@ namespace TinyOculusSharpDxDemo
 			public TextureView Texture;
 			public Matrix Layout;
 			public float Delay;
-			public Vector2 Velocity;
+			public Vector3 Forward;
 			public Color4 Color;
+			public float Speed;
 		}
 
 		#endregion // public types
@@ -37,11 +38,19 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		public Vector2 Velocity
+		public Vector3 Forward
 		{
 			get
 			{
-				return m_initParam.Velocity;
+				return m_initParam.Forward;
+			}
+		}
+
+		public float Speed
+		{
+			get
+			{
+				return m_initParam.Speed;
 			}
 		}
 
@@ -60,10 +69,9 @@ namespace TinyOculusSharpDxDemo
 
 		public void SetPose(Vector3 rot, Vector3 offset)
 		{
-			m_worldTrans =
-					Matrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z)
-					* m_initParam.Layout
-					* Matrix.Translation(offset);
+			m_worldTrans = Matrix.RotationYawPitchRoll(rot.Y, rot.X, rot.Z) 
+				* m_initParam.Layout 
+				* Matrix.Translation(offset);
 		}
 
 		public void Draw(IDrawContext context)

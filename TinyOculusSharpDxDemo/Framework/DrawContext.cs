@@ -297,7 +297,7 @@ namespace TinyOculusSharpDxDemo
 
 		// DrawInstancedModel context
 		private int m_nextInstanceIndex = 0;
-		private int m_maxInstanceCount = 100;
+		private int m_maxInstanceCount = 32;
 		private _MainVertexShaderConst[] m_instanceMainVtxConst;
 		private _MainPixelShaderConst[] m_instanceMainPixConst;
 		

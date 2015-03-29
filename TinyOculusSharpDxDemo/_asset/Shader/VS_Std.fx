@@ -3,7 +3,7 @@
  * @brief vertex shader for test
 */
 
-#define MAX_INSTANCE_COUNT 100
+#define MAX_INSTANCE_COUNT 32
 
 cbuffer cbMain : register(b0)
 {

@@ -17,6 +17,7 @@ namespace TinyOculusSharpDxDemo
 {
     public class Scene : IDisposable
     {
+		private const float EntityRange = 10.0f;
 		
         public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd, bool bStereoRendering)
 		{
@@ -57,27 +58,28 @@ namespace TinyOculusSharpDxDemo
 			var boxModel = DrawModel.CreateBox(1.0f, 1.0f, Vector4.Zero);
 			m_drawModelList.Add(boxModel);
 			var rnd = new Random();
-			var directions = new Vector2[] { new Vector2(1,0), new Vector2(-1,0), new Vector2(0,1), new Vector2(0,-1)};
 			for (int i = 0; i < 10; ++i)
 			{
 				for (int j = 0; j < 10; ++j)
 				{
-					foreach (var dir in directions)
+					for (int k = 0; k < 10; ++k)
 					{
-						float scale = RandomUtil.NextFloat(rnd, 0.1f, 0.5f);
-						float r = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
-						float g = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
-						float b = RandomUtil.NextFloat(rnd, 0.7f, 1.0f);
-						float speed = RandomUtil.NextFloat(rnd, 0.6f, 0.9f);
-						var layout = Matrix.Scaling(scale) * Matrix.Translation(-10.0f + 2.0f * j, 2.0f + 2.0f * i, -15.0f);
+						double angle = RandomUtil.NextDouble(rnd, 0.0, 2 * Math.PI);
+						float scale = RandomUtil.NextFloat(rnd, 0.03f, 0.1f);
+						float r = RandomUtil.NextFloat(rnd, 0.5f, 1.0f);
+						float g = RandomUtil.NextFloat(rnd, 0.5f, 1.0f);
+						float b = RandomUtil.NextFloat(rnd, 0.5f, 1.0f);
+						float speed = RandomUtil.NextFloat(rnd, 0.2f, 0.5f);
+						var layout = Matrix.Scaling(scale) * Matrix.Translation(i - 5.0f, 1.5f + j, k - 5.0f);
 						m_boxList.Add(new ModelEntity(new ModelEntity.InitParam()
 						{
 							Model = boxModel,
 							Texture = drawSys.ResourceRepository.FindResource<TextureView>("block"),
 							Layout = layout,
 							Delay = RandomUtil.NextFloat(rnd, 0.0f, 100.0f),
-							Velocity = speed * dir,
+							Forward = new Vector3((float)Math.Cos(angle), 0, (float)Math.Sin(angle)),
 							Color = new Color4(r, g, b, 1),
+							Speed = speed,
 						}));
 					}
 				}
@@ -100,8 +102,9 @@ namespace TinyOculusSharpDxDemo
 				Texture = drawSys.ResourceRepository.FindResource<TextureView>("floor"),
 				Layout = Matrix.Identity,
 				Delay = 0.0f,
-				Velocity = Vector2.Zero,
+				Forward = Vector3.Zero,
 				Color = Color4.White,
+				Speed = 1,
 			});
 			m_drawModelList.Add(floorModel);
 		}
@@ -131,13 +134,11 @@ namespace TinyOculusSharpDxDemo
 			{
 				float frame = (float)m_accTime + entity.Delay;
 				float angle = frame % (2.0f * (float)Math.PI);
-				entity.SetPose(
-					new Vector3(angle, angle, angle),
-					new Vector3((entity.Velocity.X * frame) % 30.0f, 0.0f, (entity.Velocity.Y * frame) % 30.0f));
+				entity.SetPose(new Vector3(angle, angle, angle),
+					((frame * entity.Speed) % 5.0f) * entity.Forward);
 
 				entity.AddInstance(context);
 			}
-
 			context.EndDrawInstance();
 
 			m_numberEntity.Draw(context);
