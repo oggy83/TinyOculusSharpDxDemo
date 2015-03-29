@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace TinyOculusSharpDxDemo
 {
-	public class NumberEntity : IDisposable, IDrawable
+	public class NumberEntity : IDisposable
 	{
 		public struct InitParam
 		{

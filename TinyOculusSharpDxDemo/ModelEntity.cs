@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace TinyOculusSharpDxDemo
 {
-	public class ModelEntity : IDisposable, IDrawable
+	public class ModelEntity 
 	{
 		#region public types
 
