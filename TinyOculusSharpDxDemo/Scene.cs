@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -19,7 +20,7 @@ namespace TinyOculusSharpDxDemo
     {
 		private const float EntityRange = 10.0f;
 		
-        public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd, bool bStereoRendering)
+        public Scene(Device device, SwapChain swapChain, Panel renderTarget, HmdDevice hmd, bool bStereoRendering, int multiThreadCount)
 		{
 			var drawSys = DrawSystem.GetInstance();
 
@@ -108,6 +109,8 @@ namespace TinyOculusSharpDxDemo
 				Speed = 1,
 			});
 			m_drawModelList.Add(floorModel);
+
+			m_multiThreadCount = multiThreadCount;
 		}
 
         public void RenderFrame()
@@ -129,18 +132,44 @@ namespace TinyOculusSharpDxDemo
 			// draw floor
 			m_floor.Draw(context);
 
-			// draw block entities
-			m_boxList[0].BeginDrawInstance(context);
-			foreach (var entity in m_boxList)
+			if (m_multiThreadCount > 1)
 			{
-				float frame = (float)m_accTime + entity.Delay;
-				float angle = frame % (2.0f * (float)Math.PI);
-				entity.SetPose(new Vector3(angle, angle, angle),
-					((frame * entity.Speed) % 5.0f) * entity.Forward);
+				int startIndex = 0;
+				int endIndex = m_boxList.Count();
+				var subThreadContext = drawSys.GetSubThreadContext(0);
+				Task.Run(() =>
+				{
+					m_boxList[startIndex].BeginDrawInstance(subThreadContext);
+					for (int index = startIndex; index < endIndex; ++index)
+					{
+						var entity = m_boxList[index];
+						float frame = (float)m_accTime + entity.Delay;
+						float angle = frame % (2.0f * (float)Math.PI);
+						entity.SetPose(new Vector3(angle, angle, angle),
+							((frame * entity.Speed) % 5.0f) * entity.Forward);
 
-				entity.AddInstance(context);
+						entity.AddInstance(subThreadContext);
+					}
+					subThreadContext.EndDrawInstance();
+				}).Wait();
+
+				context.ExecuteCommand(subThreadContext);
 			}
-			context.EndDrawInstance();
+			else
+			{
+				// draw block entities
+				m_boxList[0].BeginDrawInstance(context);
+				foreach (var entity in m_boxList)
+				{
+					float frame = (float)m_accTime + entity.Delay;
+					float angle = frame % (2.0f * (float)Math.PI);
+					entity.SetPose(new Vector3(angle, angle, angle),
+						((frame * entity.Speed) % 5.0f) * entity.Forward);
+
+					entity.AddInstance(context);
+				}
+				context.EndDrawInstance();
+			}
 
 			m_numberEntity.Draw(context);
 
@@ -174,6 +203,7 @@ namespace TinyOculusSharpDxDemo
 		private ModelEntity m_floor;
 		private NumberEntity m_numberEntity = null;
 		private double m_accTime = 0;
+		private int m_multiThreadCount;
 
 		#endregion // private members
 	}

@@ -24,5 +24,7 @@ namespace TinyOculusSharpDxDemo
 		void AddInstance(Matrix worldTrans, Color4 color);
 
 		void EndDrawInstance();
+
+		void ExecuteCommand(IDrawContext subThreadContext);
 	}
 }

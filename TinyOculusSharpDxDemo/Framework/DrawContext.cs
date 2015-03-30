@@ -205,6 +205,12 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
+		public void ExecuteCommand(IDrawContext subThreadContext)
+		{
+			// @todo 
+		}
+
+
 		private void _SetDrawSetting(DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			var context = _GetContext();

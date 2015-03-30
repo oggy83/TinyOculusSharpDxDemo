@@ -143,6 +143,12 @@ namespace TinyOculusSharpDxDemo
 			m_passCtrl.EndPass();
 		}
 
+		public IDrawContext GetSubThreadContext(int index)
+		{
+			// @todo
+			return m_passCtrl.Context;
+		}
+
 		#region private members
 
 		/// <summary>
