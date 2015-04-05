@@ -109,14 +109,14 @@ namespace TinyOculusSharpDxDemo
 				Speed = 1,
 			});
 			m_drawModelList.Add(floorModel);
-
 			m_multiThreadCount = multiThreadCount;
+			m_taskList = new List<Task>(m_multiThreadCount);
+			m_taskResultList = new List<CommandList>(m_multiThreadCount);
 		}
 
         public void RenderFrame()
 		{
 			double dt = m_fps.GetDeltaTime();
-			m_accTime += dt;
 
 			var drawSys = DrawSystem.GetInstance();
 
@@ -127,25 +127,30 @@ namespace TinyOculusSharpDxDemo
 				m_numberEntity.SetNumber(1.0f / (float)avgDT);
 			}
 
-			var context = drawSys.BeginScene();
 
-			// draw floor
-			m_floor.Draw(context);
-
-			if (m_multiThreadCount > 1)
+			//if (m_multiThreadCount > 1)
+			if (true)
 			{
-				
-				int span = m_boxList.Count() / m_multiThreadCount;
-				Task[] tasks = new Task[m_multiThreadCount];
+				Task.WaitAll(m_taskList.ToArray());
+				var tmpTaskResult = new List<CommandList>(m_taskResultList);
+				var context = drawSys.BeginScene();
+
+				// start command list generation for the next frame
+				int spanIndex = m_boxList.Count() / m_multiThreadCount;
+				m_taskList.Clear();
+				m_taskResultList.Clear();
+				m_taskResultList.AddRange(Enumerable.Repeat<CommandList>(null, m_multiThreadCount));
+				m_accTime += dt;
 				for (int threadIndex = 0; threadIndex < m_multiThreadCount; ++threadIndex)
 				{
-					int startIndex = span * threadIndex;
+					int startIndex = spanIndex * threadIndex;
+					int resultIndex = threadIndex;
 
 					var subThreadContext = drawSys.GetSubThreadContext(threadIndex);
-					tasks[threadIndex] = Task.Run(() =>
+					m_taskList.Add(Task.Run(() =>
 					{
 						m_boxList[startIndex].BeginDrawInstance(subThreadContext);
-						for (int index = startIndex; index < startIndex + span; ++index)
+						for (int index = startIndex; index < startIndex + spanIndex; ++index)
 						{
 							var entity = m_boxList[index];
 							float frame = (float)m_accTime + entity.Delay;
@@ -156,18 +161,30 @@ namespace TinyOculusSharpDxDemo
 							entity.AddInstance(subThreadContext);
 						}
 						subThreadContext.EndDrawInstance();
-					});
+						m_taskResultList[resultIndex] = subThreadContext.FinishCommandList();
+					}));
 				}
 
-				Task.WaitAll(tasks);
-				for (int threadIndex = 0; threadIndex < m_multiThreadCount; ++threadIndex)
+				// draw floor
+				m_floor.Draw(context);
+
+				foreach (var result in tmpTaskResult)
 				{
-					context.ExecuteCommand(drawSys.GetSubThreadContext(threadIndex));
+					context.ExecuteCommandList(result);
 				}
+
+				m_numberEntity.Draw(context);
+				drawSys.EndScene();
 			}
 			else
 			{
+				var context = drawSys.BeginScene();
+
+				// draw floor
+				m_floor.Draw(context);
+
 				// draw block entities
+				m_accTime += dt;
 				m_boxList[0].BeginDrawInstance(context);
 				foreach (var entity in m_boxList)
 				{
@@ -179,11 +196,11 @@ namespace TinyOculusSharpDxDemo
 					entity.AddInstance(context);
 				}
 				context.EndDrawInstance();
+
+				m_numberEntity.Draw(context);
+				drawSys.EndScene();
 			}
 
-			m_numberEntity.Draw(context);
-
-			drawSys.EndScene();
 			m_fps.EndFrame();
 			m_fps.BeginFrame();
 		}
@@ -193,6 +210,7 @@ namespace TinyOculusSharpDxDemo
         /// </summary>
         public void Dispose()
         {
+			Task.WaitAll(m_taskList.ToArray());
 			m_numberEntity.Dispose();
 			m_floor.Dispose();
 			foreach (var entity in m_boxList)
@@ -214,6 +232,8 @@ namespace TinyOculusSharpDxDemo
 		private NumberEntity m_numberEntity = null;
 		private double m_accTime = 0;
 		private int m_multiThreadCount;
+		private List<Task> m_taskList = null;
+		private List<CommandList> m_taskResultList = null;
 
 		#endregion // private members
 	}

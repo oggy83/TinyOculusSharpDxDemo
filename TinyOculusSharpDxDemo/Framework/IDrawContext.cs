@@ -25,6 +25,8 @@ namespace TinyOculusSharpDxDemo
 
 		void EndDrawInstance();
 
-		void ExecuteCommand(IDrawContext subThreadContext);
+		CommandList FinishCommandList();
+
+		void ExecuteCommandList(CommandList commandList);
 	}
 }

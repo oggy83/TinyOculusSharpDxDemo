@@ -118,11 +118,13 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		public void ExecuteCommand(IDrawContext subThreadContext)
+		public CommandList FinishCommandList()
 		{
-			Debug.Assert(subThreadContext is DrawContext, "invalid sub thread draw context");
-			var context = subThreadContext as DrawContext;
-			var commandList = context.m_context.FinishCommandList(true);
+			return m_context.FinishCommandList(true);
+		}
+
+		public void ExecuteCommandList(CommandList commandList)
+		{
 			m_context.ExecuteCommandList(commandList, true);
 			commandList.Dispose();
 		}

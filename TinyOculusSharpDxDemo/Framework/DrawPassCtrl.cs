@@ -53,6 +53,7 @@ namespace TinyOculusSharpDxDemo
 				var rawContext = new DeviceContext(m_d3d.Device);
 				var drawContext = new DrawContext(rawContext, m_factory.GetInitParam());
 				m_subThreadCtxList.Add(new _SubThreadContextData() { RawContext = rawContext, DrawContext = drawContext });
+				//drawContext.SetWorldParams(renderTarget, worldData);
 			}
 		}
 
@@ -73,17 +74,12 @@ namespace TinyOculusSharpDxDemo
 			var renderTarget = m_context.BeginScene(worldData);
 			foreach (var data in m_subThreadCtxList)
 			{
-				data.DrawContext.BeginScene(worldData);
 				data.DrawContext.SetWorldParams(renderTarget, worldData);
 			}
 		}
 
 		public void EndPass()
 		{
-			foreach (var data in m_subThreadCtxList)
-			{
-				data.DrawContext.EndScene();
-			}
 			m_context.EndScene();
 		}
 
