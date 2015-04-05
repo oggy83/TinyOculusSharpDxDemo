@@ -65,7 +65,7 @@ PS_OUTPUT main(PS_INPUT In)
 
 	// Fog
 	float startFogDistance = 3.0f;
-	float endFogDistance = 20;
+	float endFogDistance = 30;
 	float3 fogColor = g_fogCol.rgb;
 	float fogFactor = clamp((In.Position.w - startFogDistance) / (endFogDistance - startFogDistance), 0, 1);
 	Out.Color.rgb = lerp(Out.Color.rgb, fogColor, fogFactor);

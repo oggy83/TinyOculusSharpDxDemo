@@ -54,17 +54,17 @@ namespace TinyOculusSharpDxDemo
 			drawSys.FogColor = new Color3(0.3f, 0.5f, 0.8f);
 
 			// camera setting
-			drawSys.Camera = Matrix.LookAtLH(new Vector3(0.0f, 1.2f, 0.0f), new Vector3(0.0f, 1.2f, 1.0f), Vector3.Up);
+			drawSys.Camera = Matrix.LookAtLH(new Vector3(0.0f, 1.5f, 0.0f), new Vector3(0.0f, 1.5f, 1.0f), Vector3.Up);
 
 			// create random box storm
 			var boxModel = DrawModel.CreateBox(1.0f, 1.0f, Vector4.Zero);
 			m_drawModelList.Add(boxModel);
 			var rnd = new Random();
-			for (int i = 0; i < 10; ++i)
+			for (int i = 0; i < 40; ++i)
 			{
 				for (int j = 0; j < 10; ++j)
 				{
-					for (int k = 0; k < 10; ++k)
+					for (int k = 0; k < 40; ++k)
 					{
 						double angle = RandomUtil.NextDouble(rnd, 0.0, 2 * Math.PI);
 						float scale = RandomUtil.NextFloat(rnd, 0.03f, 0.1f);
@@ -72,7 +72,7 @@ namespace TinyOculusSharpDxDemo
 						float g = RandomUtil.NextFloat(rnd, 0.5f, 1.0f);
 						float b = RandomUtil.NextFloat(rnd, 0.5f, 1.0f);
 						float speed = RandomUtil.NextFloat(rnd, 0.2f, 0.5f);
-						var layout = Matrix.Scaling(scale) * Matrix.Translation(i - 5.0f, 1.5f + j, k - 5.0f);
+						var layout = Matrix.Scaling(scale) * Matrix.Translation(i - 20.0f, 1.5f + j, k - 20.0f);
 						m_boxList.Add(new ModelEntity(new ModelEntity.InitParam()
 						{
 							Model = boxModel,
@@ -128,8 +128,7 @@ namespace TinyOculusSharpDxDemo
 			}
 
 
-			//if (m_multiThreadCount > 1)
-			if (true)
+			if (m_multiThreadCount > 1)
 			{
 				Task.WaitAll(m_taskList.ToArray());
 				var tmpTaskResult = new List<CommandList>(m_taskResultList);
@@ -156,7 +155,7 @@ namespace TinyOculusSharpDxDemo
 							float frame = (float)m_accTime + entity.Delay;
 							float angle = frame % (2.0f * (float)Math.PI);
 							entity.SetPose(new Vector3(angle, angle, angle),
-								((frame * entity.Speed) % 5.0f) * entity.Forward);
+								((frame * entity.Speed) % 20.0f) * entity.Forward);
 
 							entity.AddInstance(subThreadContext);
 						}
