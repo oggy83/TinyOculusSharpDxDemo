@@ -17,22 +17,28 @@ namespace TinyOculusSharpDxDemo
 {
 	public class StereoDrawContext : DrawContext
 	{
-		public StereoDrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd)
-		: base(d3d, repository)
+		private StereoDrawContext(DeviceContext context, CommonInitParam initParam, HmdDevice hmd)
+		: base(context, initParam)
 		{
+			m_initParam = initParam;
 			m_hmd = hmd;
-			m_deferredContext = new DeviceContext(m_d3d.Device);
+			m_deferredContext = context;
 
 			// Create render targets for each HMD eye
 			var sizeArray = hmd.EyeResolutions;
 			var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
 			for (int index = 0; index < 2; ++index)
 			{
-				var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
-				m_repository.AddResource(renderTarget);
+				var renderTarget = RenderTarget.CreateRenderTarget(m_initParam.D3D, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
+				m_initParam.Repository.AddResource(renderTarget);
 			}
 
 			
+		}
+
+		public static StereoDrawContext Create(CommonInitParam initParam, HmdDevice hmd)
+		{
+			return new StereoDrawContext(new DeviceContext(initParam.D3D.Device), initParam, hmd);
 		}
 
 		override public void Dispose() 
@@ -46,15 +52,16 @@ namespace TinyOculusSharpDxDemo
 			base.BeginScene(data);
 			m_hmd.BeginScene();
 
-			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+			var repository = m_initParam.Repository;
+			var renderTargets = new[] { repository.FindResource<RenderTarget>("OVRLeftEye"), repository.FindResource<RenderTarget>("OVRRightEye") };
 			var eyeOffset = m_hmd.GetEyePoses();
 
 			// set right eye settings
-			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
+			_UpdateWorldParams(m_initParam.D3D.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
 
 			// make command list by deferred context
 			{
-				m_deferredContext.Rasterizer.State = m_rasterizerState;
+				m_deferredContext.Rasterizer.State = m_initParam.RasterizerState;
 				
 				var context = m_deferredContext;
 				var renderTarget = renderTargets[0];
@@ -68,7 +75,7 @@ namespace TinyOculusSharpDxDemo
 
 				// init fixed settings
 				Effect effect = null;
-				effect = m_repository.FindResource<Effect>("Std");
+				effect = m_initParam.Repository.FindResource<Effect>("Std");
 
 				// set context
 				context.InputAssembler.InputLayout = effect.Layout;
@@ -76,43 +83,41 @@ namespace TinyOculusSharpDxDemo
 				context.PixelShader.Set(effect.PixelShader);
 			}
 
-			m_deferredContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+			m_deferredContext.VertexShader.SetConstantBuffer(1, m_initParam.WorldVtxConst);
 		}
 
 		override public void EndScene()
 		{
 			base.EndScene();
-			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
+			var repository = m_initParam.Repository;
+			var d3d = m_initParam.D3D;
+			var renderTargets = new[] { repository.FindResource<RenderTarget>("OVRLeftEye"), repository.FindResource<RenderTarget>("OVRRightEye") };
 			var eyeOffset = m_hmd.GetEyePoses();
 
 			var commandList = m_deferredContext.FinishCommandList(true);
 
 			// render right eye image to left eye buffer
-			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
+			d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
 
 			// copy left eye buffer to right eye buffer
-			m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
+			d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
 
 			// set left eye settings
-			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
+			_UpdateWorldParams(d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
 
 			// render left eye image to left eye buffer
-			m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
+			d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
 
 			commandList.Dispose();
 
-			var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
-			var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
+			var leftEyeRT = repository.FindResource<RenderTarget>("OVRLeftEye");
+			var rightEyeRT = repository.FindResource<RenderTarget>("OVRRightEye");
 			m_hmd.EndScene(leftEyeRT, rightEyeRT);
-		}
-
-		override protected DeviceContext _GetContext() 
-		{
-			return m_deferredContext;
 		}
 
 		#region private members
 
+		private CommonInitParam m_initParam;
 		private DeviceContext m_deferredContext = null;
 		private HmdDevice m_hmd = null;
 

@@ -18,10 +18,15 @@ namespace TinyOculusSharpDxDemo
 {
 	public class MonoralDrawContext : DrawContext
 	{
-		public MonoralDrawContext(DrawSystem.D3DData d3d, DrawResourceRepository repository)
-		:　base(d3d, repository)
+		private MonoralDrawContext(DeviceContext context, CommonInitParam initParam)
+		:　base(context, initParam)
 		{
-			// nothing
+			m_initParam = initParam;
+		}
+
+		public static MonoralDrawContext Create(CommonInitParam initParam)
+		{
+			return new MonoralDrawContext(initParam.D3D.Device.ImmediateContext, initParam);
 		}
 
 		override public void Dispose()
@@ -32,12 +37,15 @@ namespace TinyOculusSharpDxDemo
 		override public void BeginScene(DrawSystem.WorldData data)
 		{
 			base.BeginScene(data);
-			var renderTarget = m_repository.GetDefaultRenderTarget();
-			_UpdateWorldParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
+
+			var repository = m_initParam.Repository;
+			var d3d = m_initParam.D3D;
+			var renderTarget = repository.GetDefaultRenderTarget();
+			_UpdateWorldParams(d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
 
 			{
-				m_d3d.Device.ImmediateContext.Rasterizer.State = m_rasterizerState;
-				var context = m_d3d.Device.ImmediateContext;
+				d3d.Device.ImmediateContext.Rasterizer.State = m_initParam.RasterizerState;
+				var context = d3d.Device.ImmediateContext;
 
 				int width = renderTarget.Resolution.Width;
 				int height = renderTarget.Resolution.Height;
@@ -48,7 +56,7 @@ namespace TinyOculusSharpDxDemo
 
 				// init fixed settings
 				Effect effect = null;
-				effect = m_repository.FindResource<Effect>("Std");
+				effect = m_initParam.Repository.FindResource<Effect>("Std");
 
 				// set context
 				context.InputAssembler.InputLayout = effect.Layout;
@@ -56,7 +64,7 @@ namespace TinyOculusSharpDxDemo
 				context.PixelShader.Set(effect.PixelShader);
 			}
 
-			m_d3d.Device.ImmediateContext.VertexShader.SetConstantBuffer(1, m_worldVtxConst);
+			m_initParam.D3D.Device.ImmediateContext.VertexShader.SetConstantBuffer(1, m_initParam.WorldVtxConst);
 
 		}
 
@@ -64,12 +72,13 @@ namespace TinyOculusSharpDxDemo
 		{
 			base.EndScene();
 			int syncInterval = 0;// 0 => immediately return, 1 => vsync
-			m_d3d.SwapChain.Present(syncInterval, PresentFlags.None);
+			m_initParam.D3D.SwapChain.Present(syncInterval, PresentFlags.None);
 		}
 
-		override protected DeviceContext _GetContext()
-		{
-			return m_d3d.Device.ImmediateContext;
-		}
+		#region private members
+
+		private CommonInitParam m_initParam;
+
+		#endregion // private members
 	}
 }

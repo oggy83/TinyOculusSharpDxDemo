@@ -66,6 +66,7 @@
     <Compile Include="Framework\DrawResourceRepository.cs" />
     <Compile Include="Framework\DrawSystem.cs" />
     <Compile Include="Framework\DrawSystem.Type.cs" />
+    <Compile Include="Framework\DrawContext.Type.cs" />
     <Compile Include="Framework\DrawUtil.cs" />
     <Compile Include="Framework\Effect.cs" />
     <Compile Include="Framework\FpsCounter.cs" />

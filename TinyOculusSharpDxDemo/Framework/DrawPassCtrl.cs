@@ -33,13 +33,15 @@ namespace TinyOculusSharpDxDemo
 			m_repository = repository;
 			m_bStereoRendering = bStereoRendering;
 			m_hmd = hmd;
+			m_factory = new DrawContext.Factory(d3d, repository);
+
 			if (bStereoRendering)
 			{
-				m_context = new StereoDrawContext(d3d, repository, hmd);
+				m_context = StereoDrawContext.Create(m_factory.GetInitParam(), m_hmd);
 			}
 			else
 			{
-				m_context = new MonoralDrawContext(d3d, repository);
+				m_context = MonoralDrawContext.Create(m_factory.GetInitParam());
 			}
 
 			// Init settings
@@ -48,6 +50,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void Dispose()
 		{
+			m_factory.Dispose();
 			m_context.Dispose();
 		}
 
@@ -67,6 +70,7 @@ namespace TinyOculusSharpDxDemo
 		private DrawResourceRepository m_repository = null;
 		private bool m_bStereoRendering;
 		private HmdDevice m_hmd = null;
+		private DrawContext.Factory m_factory = null;
 
 		#endregion // private members
 	}
