@@ -145,8 +145,7 @@ namespace TinyOculusSharpDxDemo
 
 		public IDrawContext GetSubThreadContext(int index)
 		{
-			// @todo
-			return m_passCtrl.Context;
+			return m_passCtrl.GetSubThreadContext(index);
 		}
 
 		#region private members

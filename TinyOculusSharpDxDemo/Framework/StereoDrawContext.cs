@@ -32,8 +32,6 @@ namespace TinyOculusSharpDxDemo
 				var renderTarget = RenderTarget.CreateRenderTarget(m_initParam.D3D, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
 				m_initParam.Repository.AddResource(renderTarget);
 			}
-
-			
 		}
 
 		public static StereoDrawContext Create(CommonInitParam initParam, HmdDevice hmd)
@@ -47,48 +45,24 @@ namespace TinyOculusSharpDxDemo
 			base.Dispose();
 		}
 
-		override public void BeginScene(DrawSystem.WorldData data)
+		override public RenderTarget BeginScene(DrawSystem.WorldData data)
 		{
-			base.BeginScene(data);
-			m_hmd.BeginScene();
-
 			var repository = m_initParam.Repository;
-			var renderTargets = new[] { repository.FindResource<RenderTarget>("OVRLeftEye"), repository.FindResource<RenderTarget>("OVRRightEye") };
+			var renderTarget = repository.FindResource<RenderTarget>("OVRLeftEye");
 			var eyeOffset = m_hmd.GetEyePoses();
 
-			// set right eye settings
-			_UpdateWorldParams(m_initParam.D3D.Device.ImmediateContext, renderTargets[0], eyeOffset[1]);
+			SetWorldParams(renderTarget, data);
+			m_hmd.BeginScene();
 
-			// make command list by deferred context
-			{
-				m_deferredContext.Rasterizer.State = m_initParam.RasterizerState;
-				
-				var context = m_deferredContext;
-				var renderTarget = renderTargets[0];
+			_UpdateWorldParams(m_initParam.D3D.Device.ImmediateContext, data);
+			_UpdateEyeParams(m_initParam.D3D.Device.ImmediateContext, renderTarget, eyeOffset[1]);// set right eye settings
+			_ClearRenderTarget(renderTarget);
 
-				int width = renderTarget.Resolution.Width;
-				int height = renderTarget.Resolution.Height;
-				context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
-				context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
-				context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
-				context.ClearRenderTargetView(renderTarget.TargetView, new Color4(data.fogCol));
-
-				// init fixed settings
-				Effect effect = null;
-				effect = m_initParam.Repository.FindResource<Effect>("Std");
-
-				// set context
-				context.InputAssembler.InputLayout = effect.Layout;
-				context.VertexShader.Set(effect.VertexShader);
-				context.PixelShader.Set(effect.PixelShader);
-			}
-
-			m_deferredContext.VertexShader.SetConstantBuffer(1, m_initParam.WorldVtxConst);
+			return renderTarget;
 		}
 
 		override public void EndScene()
 		{
-			base.EndScene();
 			var repository = m_initParam.Repository;
 			var d3d = m_initParam.D3D;
 			var renderTargets = new[] { repository.FindResource<RenderTarget>("OVRLeftEye"), repository.FindResource<RenderTarget>("OVRRightEye") };
@@ -103,7 +77,7 @@ namespace TinyOculusSharpDxDemo
 			d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
 
 			// set left eye settings
-			_UpdateWorldParams(d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
+			_UpdateEyeParams(d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
 
 			// render left eye image to left eye buffer
 			d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);

@@ -134,26 +134,36 @@ namespace TinyOculusSharpDxDemo
 
 			if (m_multiThreadCount > 1)
 			{
-				int startIndex = 0;
-				int endIndex = m_boxList.Count();
-				var subThreadContext = drawSys.GetSubThreadContext(0);
-				Task.Run(() =>
+				
+				int span = m_boxList.Count() / m_multiThreadCount;
+				Task[] tasks = new Task[m_multiThreadCount];
+				for (int threadIndex = 0; threadIndex < m_multiThreadCount; ++threadIndex)
 				{
-					m_boxList[startIndex].BeginDrawInstance(subThreadContext);
-					for (int index = startIndex; index < endIndex; ++index)
+					int startIndex = span * threadIndex;
+
+					var subThreadContext = drawSys.GetSubThreadContext(threadIndex);
+					tasks[threadIndex] = Task.Run(() =>
 					{
-						var entity = m_boxList[index];
-						float frame = (float)m_accTime + entity.Delay;
-						float angle = frame % (2.0f * (float)Math.PI);
-						entity.SetPose(new Vector3(angle, angle, angle),
-							((frame * entity.Speed) % 5.0f) * entity.Forward);
+						m_boxList[startIndex].BeginDrawInstance(subThreadContext);
+						for (int index = startIndex; index < startIndex + span; ++index)
+						{
+							var entity = m_boxList[index];
+							float frame = (float)m_accTime + entity.Delay;
+							float angle = frame % (2.0f * (float)Math.PI);
+							entity.SetPose(new Vector3(angle, angle, angle),
+								((frame * entity.Speed) % 5.0f) * entity.Forward);
 
-						entity.AddInstance(subThreadContext);
-					}
-					subThreadContext.EndDrawInstance();
-				}).Wait();
+							entity.AddInstance(subThreadContext);
+						}
+						subThreadContext.EndDrawInstance();
+					});
+				}
 
-				context.ExecuteCommand(subThreadContext);
+				Task.WaitAll(tasks);
+				for (int threadIndex = 0; threadIndex < m_multiThreadCount; ++threadIndex)
+				{
+					context.ExecuteCommand(drawSys.GetSubThreadContext(threadIndex));
+				}
 			}
 			else
 			{

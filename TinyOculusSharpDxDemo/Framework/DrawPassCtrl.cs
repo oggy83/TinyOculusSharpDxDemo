@@ -46,23 +46,62 @@ namespace TinyOculusSharpDxDemo
 
 			// Init settings
 			m_d3d.Device.QueryInterface<Device1>().MaximumFrameLatency = 1;
+
+			m_subThreadCtxList = new List<_SubThreadContextData>();
+			for (int index = 0; index < 10; ++index)
+			{
+				var rawContext = new DeviceContext(m_d3d.Device);
+				var drawContext = new DrawContext(rawContext, m_factory.GetInitParam());
+				m_subThreadCtxList.Add(new _SubThreadContextData() { RawContext = rawContext, DrawContext = drawContext });
+			}
 		}
 
 		public void Dispose()
 		{
+			foreach (var data in m_subThreadCtxList)
+			{
+				data.DrawContext.Dispose();
+				data.RawContext.Dispose();
+			}
+
 			m_factory.Dispose();
 			m_context.Dispose();
 		}
 
-		public void StartPass(DrawSystem.WorldData data)
+		public void StartPass(DrawSystem.WorldData worldData)
 		{
-			m_context.BeginScene(data);
+			var renderTarget = m_context.BeginScene(worldData);
+			foreach (var data in m_subThreadCtxList)
+			{
+				data.DrawContext.BeginScene(worldData);
+				data.DrawContext.SetWorldParams(renderTarget, worldData);
+			}
 		}
 
 		public void EndPass()
 		{
+			foreach (var data in m_subThreadCtxList)
+			{
+				data.DrawContext.EndScene();
+			}
 			m_context.EndScene();
 		}
+
+		public IDrawContext GetSubThreadContext(int index)
+		{
+			return m_subThreadCtxList[index].DrawContext;
+		}
+
+
+		#region private types
+
+		private struct _SubThreadContextData
+		{
+			public DrawContext DrawContext;
+			public DeviceContext RawContext;
+		}
+
+		#endregion // private types
 
 		#region private members
 
@@ -71,6 +110,7 @@ namespace TinyOculusSharpDxDemo
 		private bool m_bStereoRendering;
 		private HmdDevice m_hmd = null;
 		private DrawContext.Factory m_factory = null;
+		private List<_SubThreadContextData> m_subThreadCtxList = null;
 
 		#endregion // private members
 	}

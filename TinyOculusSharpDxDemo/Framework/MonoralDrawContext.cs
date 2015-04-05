@@ -34,43 +34,23 @@ namespace TinyOculusSharpDxDemo
 			base.Dispose();
 		}
 
-		override public void BeginScene(DrawSystem.WorldData data)
+		override public RenderTarget BeginScene(DrawSystem.WorldData data)
 		{
-			base.BeginScene(data);
-
 			var repository = m_initParam.Repository;
 			var d3d = m_initParam.D3D;
 			var renderTarget = repository.GetDefaultRenderTarget();
-			_UpdateWorldParams(d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
 
-			{
-				d3d.Device.ImmediateContext.Rasterizer.State = m_initParam.RasterizerState;
-				var context = d3d.Device.ImmediateContext;
+			SetWorldParams(renderTarget, data);
 
-				int width = renderTarget.Resolution.Width;
-				int height = renderTarget.Resolution.Height;
-				context.Rasterizer.SetViewport(new Viewport(0, 0, width, height, 0.0f, 1.0f));
-				context.OutputMerger.SetTargets(renderTarget.DepthStencilView, renderTarget.TargetView);
-				context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
-				context.ClearRenderTargetView(renderTarget.TargetView, new Color4(data.fogCol));
+			_UpdateWorldParams(d3d.Device.ImmediateContext, data);
+			_UpdateEyeParams(d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
+			_ClearRenderTarget(renderTarget);
 
-				// init fixed settings
-				Effect effect = null;
-				effect = m_initParam.Repository.FindResource<Effect>("Std");
-
-				// set context
-				context.InputAssembler.InputLayout = effect.Layout;
-				context.VertexShader.Set(effect.VertexShader);
-				context.PixelShader.Set(effect.PixelShader);
-			}
-
-			m_initParam.D3D.Device.ImmediateContext.VertexShader.SetConstantBuffer(1, m_initParam.WorldVtxConst);
-
+			return renderTarget;
 		}
 
 		override public void EndScene()
 		{
-			base.EndScene();
 			int syncInterval = 0;// 0 => immediately return, 1 => vsync
 			m_initParam.D3D.SwapChain.Present(syncInterval, PresentFlags.None);
 		}
