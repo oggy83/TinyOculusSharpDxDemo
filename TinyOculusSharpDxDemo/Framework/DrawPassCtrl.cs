@@ -27,7 +27,7 @@ namespace TinyOculusSharpDxDemo
 
 		#endregion // properties
 
-		public DrawPassCtrl(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd, bool bStereoRendering)
+		public DrawPassCtrl(DrawSystem.D3DData d3d, DrawResourceRepository repository, HmdDevice hmd, bool bStereoRendering, int multiThreadCount)
 		{
 			m_d3d = d3d;
 			m_repository = repository;
@@ -48,7 +48,7 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.Device.QueryInterface<Device1>().MaximumFrameLatency = 1;
 
 			m_subThreadCtxList = new List<_SubThreadContextData>();
-			for (int index = 0; index < 10; ++index)
+			for (int index = 0; index < multiThreadCount; ++index)
 			{
 				var rawContext = new DeviceContext(m_d3d.Device);
 				var drawContext = new DrawContext(rawContext, m_factory.GetInitParam());

@@ -24,9 +24,9 @@ namespace TinyOculusSharpDxDemo
 
 		private static DrawSystem s_singleton = null;
 
-		static public void Initialize(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering)
+		static public void Initialize(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering, int multiThreadCount)
 		{
-			s_singleton = new DrawSystem(hWnd, device, swapChain, hmd, bStereoRendering);
+			s_singleton = new DrawSystem(hWnd, device, swapChain, hmd, bStereoRendering, multiThreadCount);
 		}
 
 		static public void Dispose()
@@ -105,7 +105,7 @@ namespace TinyOculusSharpDxDemo
 
 		#endregion // properties
 
-		private DrawSystem(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering)
+		private DrawSystem(IntPtr hWnd, Device device, SwapChain swapChain, HmdDevice hmd, bool bStereoRendering, int multiThreadCount)
         {
 			m_d3d = new D3DData
 			{
@@ -119,7 +119,7 @@ namespace TinyOculusSharpDxDemo
 			m_world.dirLight.Color = new Color3(1, 1, 1);
 
 			m_repository = new DrawResourceRepository(m_d3d);
-			m_passCtrl = new DrawPassCtrl(m_d3d, m_repository, hmd, bStereoRendering);
+			m_passCtrl = new DrawPassCtrl(m_d3d, m_repository, hmd, bStereoRendering, multiThreadCount);
 
 			m_bStereoRendering = bStereoRendering;
 			m_hmd = hmd;

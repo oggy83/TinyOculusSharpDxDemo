@@ -79,7 +79,7 @@ namespace TinyOculusSharpDxDemo
 			var factory = swapChain.GetParent<Factory>();
 			factory.MakeWindowAssociation(form.Handle, WindowAssociationFlags.IgnoreAll);
 
-			DrawSystem.Initialize(form.GetRenderTarget().Handle, device, swapChain, hmd, bStereoRendering);
+			DrawSystem.Initialize(form.GetRenderTarget().Handle, device, swapChain, hmd, bStereoRendering, multiThreadCount);
 
 			var scene = new Scene(device, swapChain, form.GetRenderTarget(), hmd, bStereoRendering, multiThreadCount);
 			RenderLoop.Run(form, () => { scene.RenderFrame(); });
