@@ -51,7 +51,7 @@ namespace TinyOculusSharpDxDemo
 
 		override public void EndScene()
 		{
-			int syncInterval = 0;// 0 => immediately return, 1 => vsync
+			int syncInterval = 1;// 0 => immediately return, 1 => vsync
 			m_initParam.D3D.SwapChain.Present(syncInterval, PresentFlags.None);
 		}
 

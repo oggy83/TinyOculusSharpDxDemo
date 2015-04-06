@@ -51,7 +51,7 @@ namespace TinyOculusSharpDxDemo
 			// nothing
 		}
 		
-		public void DrawModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		virtual public void DrawModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			_SetModelParams(mesh, tex, renderMode);
 
@@ -75,12 +75,12 @@ namespace TinyOculusSharpDxDemo
 			m_drawCallCount++;
 		}
 		
-		public void BeginDrawInstance(DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
+		virtual public void BeginDrawInstance(DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
 		{
 			_SetModelParams(mesh, tex, renderMode);
 		}
 
-		public void AddInstance(Matrix worldTrans, Color4 color)
+		virtual public void AddInstance(Matrix worldTrans, Color4 color)
 		{
 			// hlsl is column-major memory layout, so we must transpose matrix
 			m_instanceMainVtxConst[m_nextInstanceIndex] = new _MainVertexShaderConst() { worldMat = Matrix.Transpose(worldTrans) };
@@ -103,7 +103,7 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		public void EndDrawInstance()
+		virtual public void EndDrawInstance()
 		{
 			if (m_nextInstanceIndex != 0)
 			{
@@ -118,12 +118,12 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
-		public CommandList FinishCommandList()
+		virtual public CommandList FinishCommandList()
 		{
 			return m_context.FinishCommandList(true);
 		}
 
-		public void ExecuteCommandList(CommandList commandList)
+		virtual public void ExecuteCommandList(CommandList commandList)
 		{
 			m_context.ExecuteCommandList(commandList, true);
 			commandList.Dispose();

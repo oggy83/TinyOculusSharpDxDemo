@@ -96,7 +96,7 @@ namespace TinyOculusSharpDxDemo
 			uint hmdCaps = 
 				(uint)LibOVR.ovrHmdCaps.LowPersistence
 				//| (uint)LibOVR.ovrHmdCaps.NoMirrorToWindow
-				| (uint)LibOVR.ovrHmdCaps.NoVSync
+				//| (uint)LibOVR.ovrHmdCaps.NoVSync
 				| (uint)LibOVR.ovrHmdCaps.DynamicPrediction;
 			LibOVR.ovrHmd_SetEnabledCaps(m_handle.Ptr, hmdCaps);
 
