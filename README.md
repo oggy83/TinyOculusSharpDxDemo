@@ -1,7 +1,7 @@
 TinyOculusSharpDxDemo
 ===========
 
-A 16 thouthand boxes storm viewing demo!  
+An Oculus Rift DK2 demo to view *16 thousand* boxes storm!  
 This program has the following features.
 
 * call Oculus Rift SDK directly from C#
