@@ -46,7 +46,7 @@ namespace TinyOculusSharpDxDemo
 			m_context.Dispose();
 		}
 
-		public RenderTarget BeginScene(DrawSystem.WorldData data)
+		public RenderTarget StartPass(DrawSystem.WorldData data)
 		{
 			var renderTarget = m_repository.FindResource<RenderTarget>("OVRLeftEye");
 			var eyeOffset = m_hmd.GetEyePoses();
@@ -62,7 +62,7 @@ namespace TinyOculusSharpDxDemo
 			return renderTarget;
 		}
 
-		public void EndScene()
+		public void EndPass()
 		{
 			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
 			var eyeOffset = m_hmd.GetEyePoses();

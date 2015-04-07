@@ -86,11 +86,11 @@ namespace TinyOculusSharpDxDemo
 			RenderTarget renderTarget = null;
 			if (m_bStereoRendering)
 			{
-				renderTarget = m_stereoContext.BeginScene(worldData);
+				renderTarget = m_stereoContext.StartPass(worldData);
 			}
 			else
 			{
-				renderTarget = m_monoralContext.BeginScene(worldData);
+				renderTarget = m_monoralContext.StartPass(worldData);
 			}
 
 			foreach (var data in m_subThreadCtxList)
@@ -103,11 +103,11 @@ namespace TinyOculusSharpDxDemo
 		{
 			if (m_bStereoRendering)
 			{
-				m_stereoContext.EndScene();
+				m_stereoContext.EndPass();
 			}
 			else
 			{
-				m_monoralContext.EndScene();
+				m_monoralContext.EndPass();
 			}
 		}
 

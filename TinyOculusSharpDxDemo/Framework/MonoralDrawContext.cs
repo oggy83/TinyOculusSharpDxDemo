@@ -30,7 +30,7 @@ namespace TinyOculusSharpDxDemo
 			m_context.Dispose();
 		}
 
-		public RenderTarget BeginScene(DrawSystem.WorldData data)
+		public RenderTarget StartPass(DrawSystem.WorldData data)
 		{
 			var renderTarget = m_repository.GetDefaultRenderTarget();
 
@@ -43,7 +43,7 @@ namespace TinyOculusSharpDxDemo
 			return renderTarget;
 		}
 
-		public void EndScene()
+		public void EndPass()
 		{
 			int syncInterval = 1;// 0 => immediately return, 1 => vsync
 			m_d3d.SwapChain.Present(syncInterval, PresentFlags.None);
