@@ -36,19 +36,13 @@ namespace TinyOculusSharpDxDemo
 
 		virtual public void Dispose()
 		{
+			if (m_context.TypeInfo == DeviceContextType.Deferred)
+			{
+				m_context.Dispose();
+			}
+
 			m_mainPixConst.Dispose();
 			m_mainVtxConst.Dispose();
-		}
-
-		virtual public RenderTarget BeginScene(DrawSystem.WorldData data)
-		{
-			// nothing
-			return null;
-		}
-
-		virtual public void EndScene()
-		{
-			// nothing
 		}
 		
 		virtual public void DrawModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
@@ -160,7 +154,7 @@ namespace TinyOculusSharpDxDemo
 			m_nextInstanceIndex = 0;
 		}
 
-		protected void _UpdateWorldParams(DeviceContext context, DrawSystem.WorldData worldData)
+		public void UpdateWorldParams(DeviceContext context, DrawSystem.WorldData worldData)
 		{
 			// init pixel shader resource
 			var pdata = new _WorldPixelShaderConst()
@@ -174,7 +168,7 @@ namespace TinyOculusSharpDxDemo
 			m_context.UpdateSubresource(ref pdata, m_initParam.WorldPixConst);
 		}
 
-		protected void _UpdateEyeParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
+		public void UpdateEyeParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
 		{
 			// update view-projection matrix
 			var vpMatrix = m_worldData.camera;
@@ -194,7 +188,7 @@ namespace TinyOculusSharpDxDemo
 			context.UpdateSubresource(ref vdata, m_initParam.WorldVtxConst);
 		}
 
-		protected void _ClearRenderTarget(RenderTarget renderTarget)
+		public void ClearRenderTarget(RenderTarget renderTarget)
 		{
 			m_context.ClearDepthStencilView(renderTarget.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
 			m_context.ClearRenderTargetView(renderTarget.TargetView, new Color4(m_worldData.fogCol));

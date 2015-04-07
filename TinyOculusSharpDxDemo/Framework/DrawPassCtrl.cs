@@ -16,12 +16,19 @@ namespace TinyOculusSharpDxDemo
 	{
 		#region properties
 
-		private DrawContext m_context = null;
+		
 		public IDrawContext Context
 		{
 			get
 			{
-				return m_context;
+				if (m_bStereoRendering)
+				{
+					return m_stereoContext;
+				}
+				else
+				{
+					return m_monoralContext;
+				}
 			}
 		}
 
@@ -37,11 +44,12 @@ namespace TinyOculusSharpDxDemo
 
 			if (bStereoRendering)
 			{
-				m_context = StereoDrawContext.Create(m_factory.GetInitParam(), m_hmd);
+				var context = new DeviceContext(d3d.Device);
+				m_stereoContext = new StereoDrawContext(d3d, repository, hmd, new DrawContext(context, m_factory.GetInitParam()));
 			}
 			else
 			{
-				m_context = MonoralDrawContext.Create(m_factory.GetInitParam());
+				m_monoralContext = new MonoralDrawContext(d3d, repository, new DrawContext(m_d3d.Device.ImmediateContext, m_factory.GetInitParam()));
 			}
 
 			// Init settings
@@ -52,8 +60,7 @@ namespace TinyOculusSharpDxDemo
 			{
 				var rawContext = new DeviceContext(m_d3d.Device);
 				var drawContext = new DrawContext(rawContext, m_factory.GetInitParam());
-				m_subThreadCtxList.Add(new _SubThreadContextData() { RawContext = rawContext, DrawContext = drawContext });
-				//drawContext.SetWorldParams(renderTarget, worldData);
+				m_subThreadCtxList.Add(new _SubThreadContextData() { DrawContext = drawContext });
 			}
 		}
 
@@ -62,16 +69,32 @@ namespace TinyOculusSharpDxDemo
 			foreach (var data in m_subThreadCtxList)
 			{
 				data.DrawContext.Dispose();
-				data.RawContext.Dispose();
 			}
 
 			m_factory.Dispose();
-			m_context.Dispose();
+			if (m_monoralContext != null)
+			{
+				m_monoralContext.Dispose();
+			}
+
+			if (m_stereoContext != null)
+			{
+				m_stereoContext.Dispose();
+			}
 		}
 
 		public void StartPass(DrawSystem.WorldData worldData)
 		{
-			var renderTarget = m_context.BeginScene(worldData);
+			RenderTarget renderTarget = null;
+			if (m_bStereoRendering)
+			{
+				renderTarget = m_stereoContext.BeginScene(worldData);
+			}
+			else
+			{
+				renderTarget = m_monoralContext.BeginScene(worldData);
+			}
+
 			foreach (var data in m_subThreadCtxList)
 			{
 				data.DrawContext.SetWorldParams(renderTarget, worldData);
@@ -80,7 +103,14 @@ namespace TinyOculusSharpDxDemo
 
 		public void EndPass()
 		{
-			m_context.EndScene();
+			if (m_bStereoRendering)
+			{
+				m_stereoContext.EndScene();
+			}
+			else
+			{
+				m_monoralContext.EndScene();
+			}
 		}
 
 		public IDrawContext GetSubThreadContext(int index)
@@ -94,13 +124,14 @@ namespace TinyOculusSharpDxDemo
 		private struct _SubThreadContextData
 		{
 			public DrawContext DrawContext;
-			public DeviceContext RawContext;
 		}
 
 		#endregion // private types
 
 		#region private members
 
+		private MonoralDrawContext m_monoralContext = null;
+		private StereoDrawContext m_stereoContext = null;
 		private DrawSystem.D3DData m_d3d;
 		private DrawResourceRepository m_repository = null;
 		private bool m_bStereoRendering;
