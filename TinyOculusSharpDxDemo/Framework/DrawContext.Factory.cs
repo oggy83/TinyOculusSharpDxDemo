@@ -82,9 +82,15 @@ namespace TinyOculusSharpDxDemo
 				m_initParam.RasterizerState.Dispose();
 			}
 
-			public CommonInitParam GetInitParam()
+			public DrawContext CreateImmediateDrawContext()
 			{
-				return m_initParam;
+				return new DrawContext(m_initParam.D3D.Device.ImmediateContext, m_initParam);
+			}
+
+			public DrawContext CreateDeferredDrawContext()
+			{
+				var deferredContext = new DeviceContext(m_initParam.D3D.Device);
+				return new DrawContext(deferredContext, m_initParam);
 			}
 
 			#region private members

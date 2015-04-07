@@ -44,12 +44,11 @@ namespace TinyOculusSharpDxDemo
 
 			if (bStereoRendering)
 			{
-				var context = new DeviceContext(d3d.Device);
-				m_stereoContext = new StereoDrawContext(d3d, repository, hmd, new DrawContext(context, m_factory.GetInitParam()));
+				m_stereoContext = new StereoDrawContext(d3d, repository, hmd, m_factory.CreateDeferredDrawContext());
 			}
 			else
 			{
-				m_monoralContext = new MonoralDrawContext(d3d, repository, new DrawContext(m_d3d.Device.ImmediateContext, m_factory.GetInitParam()));
+				m_monoralContext = new MonoralDrawContext(d3d, repository, m_factory.CreateImmediateDrawContext());
 			}
 
 			// Init settings
@@ -58,8 +57,7 @@ namespace TinyOculusSharpDxDemo
 			m_subThreadCtxList = new List<_SubThreadContextData>();
 			for (int index = 0; index < multiThreadCount; ++index)
 			{
-				var rawContext = new DeviceContext(m_d3d.Device);
-				var drawContext = new DrawContext(rawContext, m_factory.GetInitParam());
+				var drawContext = m_factory.CreateDeferredDrawContext();
 				m_subThreadCtxList.Add(new _SubThreadContextData() { DrawContext = drawContext });
 			}
 		}
