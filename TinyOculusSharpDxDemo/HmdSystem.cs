@@ -37,7 +37,10 @@ namespace TinyOculusSharpDxDemo
 
 		private HmdSystem()
 		{
-			if (!LibOVR.ovr_Initialize())
+            //var initParams = new LibOVR.ovrInitParams;
+            //initParams.Flags = 0;
+
+			if (!LibOVR.ovr_Initialize(IntPtr.Zero))
 			{
 				MessageBox.Show("Failed to initialize LibOVR.");
 				return;

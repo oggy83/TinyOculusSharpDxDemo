@@ -118,8 +118,7 @@ namespace TinyOculusSharpDxDemo
 			apiConfig.SwapChain = d3d.SwapChain.NativePointer;
 
 			uint distCaps =
-					(uint)LibOVR.ovrDistortionCaps.Chromatic
-					| (uint)LibOVR.ovrDistortionCaps.Vigette
+					(uint)LibOVR.ovrDistortionCaps.Vigette
 					| (uint)LibOVR.ovrDistortionCaps.TimeWarp
 					| (uint)LibOVR.ovrDistortionCaps.Overdrive;
 

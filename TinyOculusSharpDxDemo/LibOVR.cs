@@ -68,6 +68,7 @@ namespace TinyOculusSharpDxDemo
 			public ovrVector3f LinearVelocity;
 			public ovrVector3f Angularacceleration;
 			public ovrVector3f LinearAcceleration;
+            private float _Padding;
 			public double TimeInSeconds;
 		}
 
@@ -86,7 +87,9 @@ namespace TinyOculusSharpDxDemo
 			DK1 = 3,
 			DKHD = 4,
 			DK2 = 6,
-			Other,
+            BlackStar = 7,
+            CB = 8,
+			Other = 9,
 		}
 
 		public enum ovrHmdCaps
@@ -95,14 +98,13 @@ namespace TinyOculusSharpDxDemo
 			Available = 0x0002,
 			Captured = 0x0004,
 			ExtendDesktop = 0x0008,
+            DebugDevice = 0x0010,
 			NoMirrorToWindow = 0x2000,
 			DisplayOff = 0x0040,
 			LowPersistence = 0x0080,
 			DynamicPrediction = 0x0200,
 			DirectPentile = 0x0400,
 			NoVSync = 0x1000,
-			Writable_Mask = 0x32F0,
-			Service_Mask = 0x22F0,
 		}
 
 		public enum ovrTrackingCaps
@@ -115,7 +117,6 @@ namespace TinyOculusSharpDxDemo
 
 		public enum ovrDistortionCaps
 		{
-			Chromatic = 0x01,
 			TimeWarp = 0x02,
 			Vigette = 0x08,
 			NoRestore = 0x10,
@@ -125,7 +126,8 @@ namespace TinyOculusSharpDxDemo
 			HqDistortion = 0x100,
 			LinuxDevFullscreen = 0x200,
 			Computeshader = 0x400,
-			ProfileNoTimewarpSpinWaits = 0x10000,
+            TimewarpJitDelay = 0x1000,
+			ProfileNoSpinWaits = 0x10000,
 		}
 
 		public enum ovrEyeType
@@ -215,6 +217,7 @@ namespace TinyOculusSharpDxDemo
 		public struct ovrFrameTiming
 		{
 			public float DeltaSeconds;
+            private float _Padding;
 			public double ThisFrameSeconds;
 			public double TimewarpPointSeconds;
 			public double NextFrameSeconds;
@@ -296,7 +299,6 @@ namespace TinyOculusSharpDxDemo
 			IntPtr _PAD5_;
 		}
 
-
 		[StructLayout(LayoutKind.Sequential)]
 		public struct ovrHSWDisplayState
 		{
@@ -305,11 +307,38 @@ namespace TinyOculusSharpDxDemo
 			public double DismissibleTime;
 		}
 
+        public enum ovrInitFlags
+        {
+            Debug = 0x00000001,
+            ServerOptional = 0x00000002,
+            RequestVersion = 0x00000004,
+            ForceNoDebug = 0x00000008,
+        }
+
+        public enum ovrLogLevel
+        {
+            Debug = 0,
+            Info = 1,
+            Error = 2,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ovrInitParams
+        {
+            public uint Flags;
+            public uint RequestedMinorVersion;
+            public IntPtr LogCallback;
+            public uint ConnectionTimeoutMS;
+        }
+
+        [DllImport("libovr.dll")]
+        public extern static bool ovr_InitializeRenderingShimVersion(int requestedMinorVersion);
+
 		[DllImport("libovr.dll")]
 		public extern static bool ovr_InitializeRenderingShim();
 
 		[DllImport("libovr.dll")]
-		public extern static bool ovr_Initialize();
+		public extern static bool ovr_Initialize(IntPtr initParams);
 
 		[DllImport("libovr.dll")]
 		public extern static void ovr_Shutdown();
