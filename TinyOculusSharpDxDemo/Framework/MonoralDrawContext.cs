@@ -34,10 +34,16 @@ namespace TinyOculusSharpDxDemo
 		{
 			var renderTarget = m_repository.GetDefaultRenderTarget();
 
-			m_context.SetWorldParams(renderTarget, data);
+            // calc projection matrix
+            int width = renderTarget.Resolution.Width;
+            int height = renderTarget.Resolution.Height;
+            float aspect = (float)width / (float)height;
+            float fov = (float)Math.PI / 3;
+            var proj = Matrix.PerspectiveFovLH(fov, aspect, data.nearClip, data.farClip);
 
+			m_context.SetWorldParams(renderTarget, data);
 			m_context.UpdateWorldParams(m_d3d.Device.ImmediateContext, data);
-			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity);
+			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity, proj);
 			m_context.ClearRenderTarget(renderTarget);
 
 			return renderTarget;

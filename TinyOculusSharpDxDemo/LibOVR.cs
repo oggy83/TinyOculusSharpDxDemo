@@ -49,8 +49,23 @@ namespace TinyOculusSharpDxDemo
 		[StructLayout(LayoutKind.Sequential)]
 		public struct ovrMatrix4f
 		{
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-			public float[] M;
+            public float M11;
+            public float M12;
+            public float M13;
+            public float M14;
+            public float M21;
+            public float M22;
+            public float M23;
+            public float M24;
+            public float M31;
+            public float M32;
+            public float M33;
+            public float M34;
+            public float M41;
+            public float M42;
+            public float M43;
+            public float M44;
+
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -75,10 +90,10 @@ namespace TinyOculusSharpDxDemo
 		[StructLayout(LayoutKind.Sequential)]
 		public struct ovrFovPort
 		{
-			float UpTan;
-			float DownTan;
-			float LeftTan;
-			float RightTan;
+			public float UpTan;
+			public float DownTan;
+			public float LeftTan;
+			public float RightTan;
 		}
 
 		public enum ovrHmdType
@@ -331,6 +346,25 @@ namespace TinyOculusSharpDxDemo
             public uint ConnectionTimeoutMS;
         }
 
+        public enum ovrProjectionModifier
+        {
+            /// <summary>
+            /// default setting
+            /// </summary>
+            /// <remarks>
+            /// * Left-handed
+            /// * Near depth values stored in the depth buffer are smaller than far depth values
+            /// * Both near and far are explicitly defined
+            /// * With a clipping range that is (0 to w)
+            /// </remarks>
+            None = 0x00,
+
+            RightHanded = 0x01,
+            FarLessThanNear = 0x02,
+            FarClipAtInfinity = 0x04,
+            ClipRangeOpenGL = 0x08,
+        }
+
         [DllImport("libovr.dll")]
         public extern static bool ovr_InitializeRenderingShimVersion(int requestedMinorVersion);
 
@@ -402,5 +436,9 @@ namespace TinyOculusSharpDxDemo
 
 		[DllImport("libovr.dll")]
 		public extern static bool ovrHmd_DismissHSWDisplay(IntPtr hmd);
+
+        [DllImport("libovr.dll")]
+        public extern static ovrMatrix4f ovrMatrix4f_Projection(ovrFovPort fov, float znear, float zfar, uint projectionModFlags);
+
 	}
 }

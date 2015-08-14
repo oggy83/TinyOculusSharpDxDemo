@@ -45,6 +45,8 @@ namespace TinyOculusSharpDxDemo
 			public Color3 ambientCol;
 			public Color3 fogCol;
 			public DrawSystem.DirectionalLightData dirLight;
+            public float nearClip;
+            public float farClip;
 		}
 
 		public struct D3DData

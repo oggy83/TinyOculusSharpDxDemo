@@ -52,6 +52,8 @@ namespace TinyOculusSharpDxDemo
 			});
 			drawSys.AmbientColor = new Color3(0.3f, 0.4f, 0.6f);
 			drawSys.FogColor = new Color3(0.3f, 0.5f, 0.8f);
+            drawSys.NearClip = 0.01f;
+            drawSys.FarClip = 10000.0f;
 
 			// camera setting
 			drawSys.Camera = Matrix.LookAtLH(new Vector3(0.0f, 1.5f, 0.0f), new Vector3(0.0f, 1.5f, 1.0f), Vector3.Up);

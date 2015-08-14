@@ -85,6 +85,30 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
+        public float NearClip
+        {
+            get
+            {
+                return m_world.nearClip;
+            }
+            set
+            {
+                m_world.nearClip = value;
+            }
+        }
+
+        public float FarClip
+        {
+            get
+            {
+                return m_world.farClip;
+            }
+            set
+            {
+                m_world.farClip = value;
+            }
+        }
+
 		private D3DData m_d3d;
 		public D3DData D3D
 		{

@@ -48,14 +48,16 @@ namespace TinyOculusSharpDxDemo
 
 		public RenderTarget StartPass(DrawSystem.WorldData data)
 		{
+            m_worldData = data;
 			var renderTarget = m_repository.FindResource<RenderTarget>("OVRLeftEye");
 			var eyeOffset = m_hmd.GetEyePoses();
+            var proj = _CalcProjection(1, m_worldData.nearClip, m_worldData.farClip);
 
 			m_context.SetWorldParams(renderTarget, data);
 			m_hmd.BeginScene();
 
 			m_context.UpdateWorldParams(m_d3d.Device.ImmediateContext, data);
-			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTarget, eyeOffset[1]);// set right eye settings
+			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTarget, eyeOffset[1], proj);// set right eye settings
 			m_context.ClearRenderTarget(renderTarget);
 			m_isContextDirty = true;
 
@@ -66,6 +68,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
 			var eyeOffset = m_hmd.GetEyePoses();
+            var proj = _CalcProjection(0, m_worldData.nearClip, m_worldData.farClip);
 
 			if (m_isContextDirty)
 			{
@@ -84,7 +87,7 @@ namespace TinyOculusSharpDxDemo
 			m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
 
 			// set left eye settings
-			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0]);
+			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0], proj);
 
 			// render left eye image to left eye buffer
 			foreach (var commandList in m_commandListTable)
@@ -154,7 +157,38 @@ namespace TinyOculusSharpDxDemo
 		private HmdDevice m_hmd = null;
 		private List<CommandList> m_commandListTable = null;
 		private bool m_isContextDirty = false;
+        private DrawSystem.WorldData m_worldData;
 
 		#endregion // private members
-	}
+
+        #region private methods
+
+        private Matrix _CalcProjection(int eyeIndex, float nearClip, float farClip)
+        {
+            var fov = m_hmd.GetEyeFovs()[eyeIndex];
+            uint flag = (uint)LibOVR.ovrProjectionModifier.None;
+
+            LibOVR.ovrMatrix4f ovrProj = LibOVR.ovrMatrix4f_Projection(fov, nearClip, farClip, flag);
+            Matrix tmp = new Matrix();
+            tmp.M11 = ovrProj.M11;
+            tmp.M12 = ovrProj.M21;
+            tmp.M13 = ovrProj.M31;
+            tmp.M14 = ovrProj.M41;
+            tmp.M21 = ovrProj.M12;
+            tmp.M22 = ovrProj.M22;
+            tmp.M23 = ovrProj.M32;
+            tmp.M24 = ovrProj.M42;
+            tmp.M31 = ovrProj.M13;
+            tmp.M32 = ovrProj.M23;
+            tmp.M33 = ovrProj.M33;
+            tmp.M34 = ovrProj.M43;
+            tmp.M41 = ovrProj.M14;
+            tmp.M42 = ovrProj.M24;
+            tmp.M43 = ovrProj.M34;
+            tmp.M44 = ovrProj.M44;
+            return tmp;
+        }
+
+        #endregion // private methods
+    }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using SharpDX;
 using SharpDX.Windows;
 using SharpDX.DXGI;
@@ -168,17 +169,10 @@ namespace TinyOculusSharpDxDemo
 			m_context.UpdateSubresource(ref pdata, m_initParam.WorldPixConst);
 		}
 
-		public void UpdateEyeParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset)
+		public void UpdateEyeParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset, Matrix proj)
 		{
 			// update view-projection matrix
-			var vpMatrix = m_worldData.camera;
-			vpMatrix *= eyeOffset;
-
-			int width = renderTarget.Resolution.Width;
-			int height = renderTarget.Resolution.Height;
-			Single aspect = (float)width / (float)height;
-			Single fov = (Single)Math.PI / 4;
-			vpMatrix *= Matrix.PerspectiveFovLH(fov, aspect, 0.1f, 100.0f);
+            var vpMatrix = m_worldData.camera * eyeOffset * proj;
 
 			var vdata = new _WorldVertexShaderConst()
 			{
