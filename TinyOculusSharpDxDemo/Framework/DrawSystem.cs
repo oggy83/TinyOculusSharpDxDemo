@@ -53,11 +53,11 @@ namespace TinyOculusSharpDxDemo
 		{
 			get
 			{
-				return m_world.camera;
+				return m_world.Camera;
 			}
 			set
 			{
-				m_world.camera = value;
+				m_world.Camera = value;
 			}
 		}
 
@@ -65,11 +65,11 @@ namespace TinyOculusSharpDxDemo
 		{
 			get
 			{
-				return m_world.ambientCol;
+				return m_world.AmbientColor;
 			}
 			set
 			{
-				m_world.ambientCol = value;
+				m_world.AmbientColor = value;
 			}
 		}
 
@@ -77,11 +77,11 @@ namespace TinyOculusSharpDxDemo
 		{
 			get
 			{
-				return m_world.fogCol;
+				return m_world.FogColor;
 			}
 			set
 			{
-				m_world.fogCol = value;
+				m_world.FogColor = value;
 			}
 		}
 
@@ -89,11 +89,11 @@ namespace TinyOculusSharpDxDemo
         {
             get
             {
-                return m_world.nearClip;
+                return m_world.NearClip;
             }
             set
             {
-                m_world.nearClip = value;
+                m_world.NearClip = value;
             }
         }
 
@@ -101,11 +101,11 @@ namespace TinyOculusSharpDxDemo
         {
             get
             {
-                return m_world.farClip;
+                return m_world.FarClip;
             }
             set
             {
-                m_world.farClip = value;
+                m_world.FarClip = value;
             }
         }
 
@@ -139,8 +139,8 @@ namespace TinyOculusSharpDxDemo
 			};
 			
 			AmbientColor = new Color3(0, 0, 0);
-			m_world.dirLight.Direction = new Vector3(0, 1, 0);
-			m_world.dirLight.Color = new Color3(1, 1, 1);
+			m_world.DirectionalLight.Direction = new Vector3(0, 1, 0);
+			m_world.DirectionalLight.Color = new Color3(1, 1, 1);
 
 			m_repository = new DrawResourceRepository(m_d3d);
 			m_passCtrl = new DrawPassCtrl(m_d3d, m_repository, hmd, bStereoRendering, multiThreadCount);
@@ -152,7 +152,7 @@ namespace TinyOculusSharpDxDemo
 
 		public void SetDirectionalLight(DirectionalLightData light)
 		{
-			m_world.dirLight = light;
+			m_world.DirectionalLight = light;
 		}
 
 		public IDrawContext BeginScene()

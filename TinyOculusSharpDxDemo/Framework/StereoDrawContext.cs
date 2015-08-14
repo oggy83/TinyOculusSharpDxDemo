@@ -51,7 +51,7 @@ namespace TinyOculusSharpDxDemo
             m_worldData = data;
 			var renderTarget = m_repository.FindResource<RenderTarget>("OVRLeftEye");
 			var eyeOffset = m_hmd.GetEyePoses();
-            var proj = _CalcProjection(1, m_worldData.nearClip, m_worldData.farClip);
+            var proj = _CalcProjection(1, m_worldData.NearClip, m_worldData.FarClip);
 
 			m_context.SetWorldParams(renderTarget, data);
 			m_hmd.BeginScene();
@@ -68,7 +68,7 @@ namespace TinyOculusSharpDxDemo
 		{
 			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
 			var eyeOffset = m_hmd.GetEyePoses();
-            var proj = _CalcProjection(0, m_worldData.nearClip, m_worldData.farClip);
+            var proj = _CalcProjection(0, m_worldData.NearClip, m_worldData.FarClip);
 
 			if (m_isContextDirty)
 			{

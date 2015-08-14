@@ -41,12 +41,12 @@ namespace TinyOculusSharpDxDemo
 		/// </summary>
 		public struct WorldData
 		{
-			public Matrix camera;
-			public Color3 ambientCol;
-			public Color3 fogCol;
-			public DrawSystem.DirectionalLightData dirLight;
-            public float nearClip;
-            public float farClip;
+			public Matrix Camera;
+			public Color3 AmbientColor;
+			public Color3 FogColor;
+			public DrawSystem.DirectionalLightData DirectionalLight;
+            public float NearClip;
+            public float FarClip;
 		}
 
 		public struct D3DData

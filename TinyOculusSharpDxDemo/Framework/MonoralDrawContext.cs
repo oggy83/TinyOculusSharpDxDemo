@@ -39,7 +39,7 @@ namespace TinyOculusSharpDxDemo
             int height = renderTarget.Resolution.Height;
             float aspect = (float)width / (float)height;
             float fov = (float)Math.PI / 3;
-            var proj = Matrix.PerspectiveFovLH(fov, aspect, data.nearClip, data.farClip);
+            var proj = Matrix.PerspectiveFovLH(fov, aspect, data.NearClip, data.FarClip);
 
 			m_context.SetWorldParams(renderTarget, data);
 			m_context.UpdateWorldParams(m_d3d.Device.ImmediateContext, data);
