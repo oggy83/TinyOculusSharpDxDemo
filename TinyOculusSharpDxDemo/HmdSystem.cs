@@ -21,9 +21,10 @@ namespace TinyOculusSharpDxDemo
 
 		static public void Dispose()
 		{
-			if (s_singleton.m_hmdHandle != null)
+			if (s_singleton.m_hmdDevice != null)
 			{
-				LibOVR.ovrHmd_Destroy(s_singleton.m_hmdHandle.Ptr);
+                s_singleton.m_hmdDevice.Dispose();
+                s_singleton.m_hmdDevice = null;
 			}
 			LibOVR.ovr_Shutdown();
 		}
@@ -40,7 +41,7 @@ namespace TinyOculusSharpDxDemo
             //var initParams = new LibOVR.ovrInitParams;
             //initParams.Flags = 0;
 
-			if (!LibOVR.ovr_Initialize(IntPtr.Zero))
+			if (LibOVR.ovr_Initialize(IntPtr.Zero) != 0)
 			{
 				MessageBox.Show("Failed to initialize LibOVR.");
 				return;
@@ -61,22 +62,28 @@ namespace TinyOculusSharpDxDemo
 		/// </returns>
 		public HmdDevice DetectHmd()
 		{
-			var hmd = CRef<LibOVR.ovrHmdDesc>.FromPtr(LibOVR.ovrHmd_Create(0));
+            IntPtr hmdPtr;
+            if (LibOVR.ovrHmd_Create(0, out hmdPtr) != 0)
+            {
+                MessageBox.Show("Oculus Rift not detected.");
+                return null;
+            }
+
+			var hmd = CRef<LibOVR.ovrHmdDesc>.FromPtr(hmdPtr);
 			if (hmd == null)
 			{
-				MessageBox.Show("Oculus Rift not detected.");
 				return null;
 			}
 			else
 			{
-				m_hmdHandle = hmd;
-				return new HmdDevice(hmd);
+				m_hmdDevice = new HmdDevice(hmd);
+                return m_hmdDevice;
 			}
 		}
 
 		#region private members
 
-		private CRef<LibOVR.ovrHmdDesc> m_hmdHandle = null;
+        private HmdDevice m_hmdDevice = null;
 
 		#endregion // private members
 	}

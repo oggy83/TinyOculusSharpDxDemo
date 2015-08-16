@@ -3,17 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Diagnostics;
 using SharpDX;
+using SharpDX.Windows;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
+using Device = SharpDX.Direct3D11.Device;
+using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace TinyOculusSharpDxDemo
 {
 	/// <summary>
 	/// This class represents a hmd device
 	/// </summary>
-	public class HmdDevice 
+	public class HmdDevice : IDisposable
 	{
 		#region properties
 
@@ -27,19 +33,7 @@ namespace TinyOculusSharpDxDemo
 				return m_handle.Ptr;
 			}
 		}
-
-		/// <summary>
-		/// get wheather this device support window mode rendering
-		/// </summary>
-		/// <remarks>Extend Desktop mode can't render as window</remarks>
-		public bool IsEnableWindowMode
-		{
-			get
-			{
-				return (m_handle.Value.HmdCaps & (int)LibOVR.ovrHmdCaps.ExtendDesktop) == 1 ? false : true;
-			}
-		}
-
+		
 		/// <summary>
 		/// get the max rendering resolution 
 		/// </summary>
@@ -72,13 +66,105 @@ namespace TinyOculusSharpDxDemo
 			
 		}
 
-
 		#endregion // properties
 
-		public HmdDevice(CRef<LibOVR.ovrHmdDesc> handle)
+        #region public types
+
+        public class HmdSwapTextureSet : IDisposable
+        {
+            private Size m_resolution;
+            public Size Resolution
+            {
+                get
+                {
+                    return m_resolution;
+                }
+            }
+
+            private List<IntPtr> m_texturePtrs;
+            public List<IntPtr> TexturePtrs
+            {
+                get
+                {
+                    return m_texturePtrs;
+                }
+            }
+
+            public IntPtr Ptr
+            {
+                get
+                {
+                    return m_textureSet.Ptr;
+                }
+            }
+
+            public int CurrentIndex
+            {
+                get
+                {
+                    return m_textureSet.Value.CurrentIndex;
+                }
+            }
+
+            public HmdSwapTextureSet(IntPtr hmdPtr, CRef<LibOVR.ovrSwapTextureSet> textureSet, CRef<LibOVR.ovrTexture>[] textures)
+            {
+                m_hmdPtr = hmdPtr;
+                m_textureSet = textureSet;
+                m_textures = textures;
+
+                var csize = m_textures[0].Value.Header.TextureSize;
+                m_resolution = new Size(csize.w, csize.h);
+
+                m_texturePtrs = m_textures.Select(t => t.Value.Texture).ToList();
+            }
+
+            public void Dispose()
+            {
+                LibOVR.ovrHmd_DestroySwapTextureSet(m_hmdPtr, m_textureSet.Ptr);
+                m_textureSet.Clear();
+                m_textures = null;
+            }
+
+            public void AdvanceToNextTexture()
+            {
+                m_textureSet.Value.CurrentIndex = (m_textureSet.Value.CurrentIndex + 1) % m_textureSet.Value.TextureCount;
+                unsafe
+                {
+                    *(LibOVR.ovrSwapTextureSet*)(m_textureSet.Ptr) = m_textureSet.Value;
+                }
+            }
+
+            public void SetTextureView(int index, IntPtr ptr)
+            {
+                m_textures[index].Value.View = ptr;
+                unsafe
+                {
+                    *(LibOVR.ovrTexture*)(m_textures[index].Ptr) = m_textures[index].Value;
+                }
+            }
+
+            private IntPtr m_hmdPtr;
+            private CRef<LibOVR.ovrSwapTextureSet> m_textureSet;
+            private CRef<LibOVR.ovrTexture>[] m_textures;
+        }
+
+        #endregion // public types
+
+        public HmdDevice(CRef<LibOVR.ovrHmdDesc> handle)
 		{
 			m_handle = handle;
 		}
+
+        public void Dispose()
+        {
+            if (m_isDisposed)
+            {
+                return;
+            }
+
+            LibOVR.ovrHmd_Destroy(m_handle.Ptr);
+            m_isDisposed = true;
+        }
 
 		/// <summary>
 		/// attach hmd to draw system
@@ -87,52 +173,22 @@ namespace TinyOculusSharpDxDemo
 		/// <param name="renderTarget">render target of back buffer</param>
 		public void Attach(DrawSystem.D3DData d3d, RenderTarget renderTarget)
 		{
-			if (!LibOVR.ovrHmd_AttachToWindow(m_handle.Ptr, d3d.WindowHandle, IntPtr.Zero, IntPtr.Zero))
-			{
-				MessageBox.Show("Failed to AttachToWindow()");
-				Application.Exit();
-			}
-
 			uint hmdCaps = 
 				(uint)LibOVR.ovrHmdCaps.LowPersistence
-				//| (uint)LibOVR.ovrHmdCaps.NoMirrorToWindow
-				//| (uint)LibOVR.ovrHmdCaps.NoVSync
 				| (uint)LibOVR.ovrHmdCaps.DynamicPrediction;
 			LibOVR.ovrHmd_SetEnabledCaps(m_handle.Ptr, hmdCaps);
 
 			uint trackingCaps = (uint)LibOVR.ovrTrackingCaps.Orientation | (uint)LibOVR.ovrTrackingCaps.MagYawCorrection
 				| (uint)LibOVR.ovrTrackingCaps.Position;
-			if (!LibOVR.ovrHmd_ConfigureTracking(m_handle.Ptr, trackingCaps, 0))
+			if (LibOVR.ovrHmd_ConfigureTracking(m_handle.Ptr, trackingCaps, 0) != 0)
 			{
 				MessageBox.Show("Failed to ConfigureTracking()");
 				Application.Exit();
 			}
 
-			var apiConfig = new LibOVR.ovrRenderAPIConfig();
-			apiConfig.Header.API = LibOVR.ovrRenderAPIType.D3D11;
-			apiConfig.Header.BackBufferSize = m_handle.Value.Resolution;
-			apiConfig.Header.Multisample = 1;
-			apiConfig.Device = d3d.Device.NativePointer;
-			apiConfig.DeviceContext = d3d.Device.ImmediateContext.NativePointer;
-			apiConfig.BackBufferRT = renderTarget.TargetView.NativePointer;
-			apiConfig.SwapChain = d3d.SwapChain.NativePointer;
-
-			uint distCaps =
-					(uint)LibOVR.ovrDistortionCaps.Vigette
-					| (uint)LibOVR.ovrDistortionCaps.TimeWarp
-					| (uint)LibOVR.ovrDistortionCaps.Overdrive;
-
-			m_eyeDescArray = new LibOVR.ovrEyeRenderDesc[2];
-
-			unsafe
-			{
-				if (!LibOVR.ovrHmd_ConfigureRendering(m_handle.Ptr, (IntPtr)(&apiConfig), distCaps, m_handle.Value.DefaultEyeFov, m_eyeDescArray))
-				{
-					MessageBox.Show("failed to ovrHmd_ConfigureRendering");
-					Application.Exit();
-				}
-			}
-
+            m_eyeDescArray = new LibOVR.ovrEyeRenderDesc[2];
+            m_eyeDescArray[0] = LibOVR.ovrHmd_GetRenderDesc(m_handle.Ptr, LibOVR.ovrEyeType.Left, m_handle.Value.DefaultEyeFov[0]);
+            m_eyeDescArray[1] = LibOVR.ovrHmd_GetRenderDesc(m_handle.Ptr, LibOVR.ovrEyeType.Right, m_handle.Value.DefaultEyeFov[1]);
 		}
 
 		public void Detach()
@@ -142,18 +198,6 @@ namespace TinyOculusSharpDxDemo
 		
 		public void BeginScene()
 		{
-			LibOVR.ovrFrameTiming timing = LibOVR.ovrHmd_BeginFrame(m_handle.Ptr, 0);
-			var state = new LibOVR.ovrHSWDisplayState();
-			unsafe
-			{
-				LibOVR.ovrHmd_GetHSWDisplayState(m_handle.Ptr, (IntPtr)(&state));
-			}
-
-			if (state.Displayed && LibOVR.ovrHmd_DismissHSWDisplay(m_handle.Ptr))
-			{
-				// start draw model
-			}
-
 			// update poses
 			var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
 			LibOVR.ovrHmd_GetEyePoses(m_handle.Ptr, 0, hmdToEyeOffsets, m_tmpEyePoses, IntPtr.Zero);
@@ -191,20 +235,29 @@ namespace TinyOculusSharpDxDemo
             return result;
         }
 
-		public void EndScene(RenderTarget leftEyeRenderTarget, RenderTarget rightEyeRenderTarget)
+		public void EndScene(HmdSwapTextureSet leftEyeSwapTextureSet, HmdSwapTextureSet rightEyeSwapTextureSet)
 		{
-			var renderTargets = new RenderTarget[] { leftEyeRenderTarget, rightEyeRenderTarget };
-			var eyeTextures = new LibOVR.ovrTexture[2];
-			for (int index = 0; index < 2; ++index)
-			{
-				eyeTextures[index].Header.API = LibOVR.ovrRenderAPIType.D3D11;
-				eyeTextures[index].Header.TextureSize = ToOvrSizei(renderTargets[index].Resolution);
-				eyeTextures[index].Header.RenderViewport = ToOvrRecti(renderTargets[index].Resolution);// assume that use full area
-				eyeTextures[index].Texture = renderTargets[index].TargetTexture.NativePointer;
-				eyeTextures[index].View = renderTargets[index].ShaderResourceView.NativePointer;
-			}
+            LibOVR.ovrLayerEyeFov layer = new LibOVR.ovrLayerEyeFov();
+            layer.Header.Type = LibOVR.ovrLayerType.EyeFov;
+            layer.Header.Flags = (uint)LibOVR.ovrLayerFlags.HighQuality;
+            layer.ColorTexture_Left = leftEyeSwapTextureSet.Ptr;
+            layer.ColorTexture_Right = rightEyeSwapTextureSet.Ptr;
+            layer.Viewport_Left = ToOvrRecti(leftEyeSwapTextureSet.Resolution);
+            layer.Viewport_Right = ToOvrRecti(rightEyeSwapTextureSet.Resolution);
+            layer.Fov_Left = m_handle.Value.DefaultEyeFov[0];
+            layer.Fov_Right = m_handle.Value.DefaultEyeFov[1];
+            layer.RnderPose_Left = m_tmpEyePoses[0];
+            layer.RnderPose_Right = m_tmpEyePoses[1];
 
-			LibOVR.ovrHmd_EndFrame(m_handle.Ptr, m_tmpEyePoses, eyeTextures);
+            unsafe
+            {
+                void* layerList = &layer;
+                int result = LibOVR.ovrHmd_SubmitFrame(m_handle.Ptr, 0, IntPtr.Zero, (IntPtr)(&layerList), 1);
+                if (result != 0)
+                {
+                    // is invisible next frame @todo
+                }
+            }
 		}
 
 		public void ResetPose()
@@ -212,8 +265,83 @@ namespace TinyOculusSharpDxDemo
 			LibOVR.ovrHmd_RecenterPose(m_handle.Ptr);
 		}
 
-		
-		private static LibOVR.ovrSizei ToOvrSizei(Size size)
+        public HmdSwapTextureSet CreateSwapTextureSet(Device device, Texture2DDescription desc)
+        {
+            var cDesc = new _D3D11_TEXTURE2D_DESC()
+            {
+                Width = (uint)desc.Width,
+                Height = (uint)desc.Height,
+                MipLevels = (uint)desc.MipLevels,
+                ArraySize = (uint)desc.ArraySize,
+                Format = (uint)desc.Format,
+                SampleDesc_Count = (uint)desc.SampleDescription.Count,
+                SampleDesc_Quality = (uint)desc.SampleDescription.Quality,
+                Usage = (uint)desc.Usage,
+                BindFlags = (uint)desc.BindFlags,
+                CPUAccessFlags = (uint)desc.CpuAccessFlags,
+                MiscFlags = (uint)desc.OptionFlags,
+            };
+
+            unsafe
+			{
+                IntPtr textureSetPtr;
+                int result = LibOVR.ovrHmd_CreateSwapTextureSetD3D11(m_handle.Ptr, device.NativePointer, (IntPtr)(&cDesc), out textureSetPtr);
+                if (result != 0)
+                {
+                    MessageBox.Show("Failed to ovrHmd_CreateSwapTexturesetD3D11() code=" + result);
+                    return null;
+                }
+
+                var textureSet = CRef<LibOVR.ovrSwapTextureSet>.FromPtr(textureSetPtr);
+                if (textureSet == null)
+                {
+                    return null;
+                }
+
+                var textureList = new List<CRef<LibOVR.ovrTexture>>();
+                for (int texIndex = 0; texIndex < textureSet.Value.TextureCount; ++texIndex)
+                {
+                    IntPtr texPtr = textureSet.Value.Textures + sizeof(LibOVR.ovrTexture) * texIndex;
+                    var tex = CRef<LibOVR.ovrTexture>.FromPtr(texPtr);
+                    textureList.Add(tex);
+                }
+
+                return new HmdSwapTextureSet(m_handle.Ptr, textureSet, textureList.ToArray());
+            }
+        }
+
+        #region private types
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct _D3D11_TEXTURE2D_DESC
+        {
+            public uint Width;
+            public uint Height;
+            public uint MipLevels;
+            public uint ArraySize;
+            public uint Format;
+            public uint SampleDesc_Count;
+            public uint SampleDesc_Quality;
+            public uint Usage;
+            public uint BindFlags;
+            public uint CPUAccessFlags;
+            public uint MiscFlags;
+        };
+
+        #endregion // private types
+
+        #region private members
+
+        private CRef<LibOVR.ovrHmdDesc> m_handle;
+        private LibOVR.ovrEyeRenderDesc[] m_eyeDescArray = null;
+        private LibOVR.ovrPosef[] m_tmpEyePoses = new LibOVR.ovrPosef[2];
+        private bool m_isDisposed = false;
+
+        #endregion // private members
+
+        #region private methods
+
+        private static LibOVR.ovrSizei ToOvrSizei(Size size)
 		{
 			return new LibOVR.ovrSizei
 			{
@@ -231,8 +359,8 @@ namespace TinyOculusSharpDxDemo
 			};
 		}
 
-		private CRef<LibOVR.ovrHmdDesc> m_handle;
-		private LibOVR.ovrEyeRenderDesc[] m_eyeDescArray = null;
-		private LibOVR.ovrPosef[] m_tmpEyePoses = new LibOVR.ovrPosef[2];
+        #endregion // private methods
+
+        
 	}
 }

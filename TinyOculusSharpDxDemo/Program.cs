@@ -23,7 +23,7 @@ namespace TinyOculusSharpDxDemo
 		static void Main()
 		{
 			bool bStereoRendering = true;// change to 'false' due to non-stereo rendering for debug
-			int multiThreadCount = 4;// 1 is single thread
+            int multiThreadCount = 4;// 1 is single thread
 
 			// init oculus rift hmd system
 			HmdSystem.Initialize();
@@ -49,7 +49,7 @@ namespace TinyOculusSharpDxDemo
 				BufferCount = 2,
 				ModeDescription =
 					new ModeDescription(resolution.Width, resolution.Height, new Rational(0, 1), Format.R8G8B8A8_UNorm),
-				IsWindowed = hmd.IsEnableWindowMode,
+				IsWindowed = true,
 				OutputHandle = form.GetRenderTarget().Handle,
 				SampleDescription = new SampleDescription(1, 0),
 				SwapEffect = SwapEffect.Sequential,

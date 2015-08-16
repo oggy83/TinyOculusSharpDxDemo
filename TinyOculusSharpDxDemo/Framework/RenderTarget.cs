@@ -9,6 +9,7 @@ using SharpDX.DXGI;
 using System.Diagnostics;
 using System.Drawing;
 
+
 namespace TinyOculusSharpDxDemo
 {
 	/// <summary>
@@ -72,8 +73,6 @@ namespace TinyOculusSharpDxDemo
 
 		public static RenderTarget CreateRenderTarget(DrawSystem.D3DData d3d, string name, int width, int height)
 		{
-			var res = new RenderTarget(name);
-
 			var backBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
 			{
 				Format = Format.R8G8B8A8_UNorm,
@@ -88,38 +87,66 @@ namespace TinyOculusSharpDxDemo
 				OptionFlags = ResourceOptionFlags.None
 			});
 
-			var depthBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
-			{
-				Format = Format.D32_Float,
-				ArraySize = 1,
-				MipLevels = 1,
-				Width = width,
-				Height = height,
-				SampleDescription = new SampleDescription(1, 0),
-				Usage = ResourceUsage.Default,
-				BindFlags = BindFlags.DepthStencil,
-				CpuAccessFlags = CpuAccessFlags.None,
-				OptionFlags = ResourceOptionFlags.None
-			});
-
-			var dsvDesc = new DepthStencilViewDescription
-			{
-				Dimension = DepthStencilViewDimension.Texture2D,
-				Flags = DepthStencilViewFlags.None,
-				Format = depthBuffer.Description.Format,
-				Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 0 }
-			};
-
-			res.ShaderResourceView = new ShaderResourceView(d3d.Device, backBuffer);
-			res.TargetTexture = backBuffer;
-			res.TargetView = new RenderTargetView(d3d.Device, backBuffer);
-			res.DepthStencilView = new DepthStencilView(d3d.Device, depthBuffer, dsvDesc);
-			res._AddDisposable(res.ShaderResourceView);
+            var res = FromTexture(d3d, name, backBuffer);
 			res._AddDisposable(res.TargetView);
-			res._AddDisposable(res.DepthStencilView);
 
 			return res;
 		}
 
+        public static RenderTarget FromTexture(DrawSystem.D3DData d3d, string name, Texture2D texture)
+        {
+            int width = texture.Description.Width;
+            int height = texture.Description.Height;
+
+            var res = new RenderTarget(name);
+
+            var depthBuffer = new Texture2D(d3d.Device, new Texture2DDescription()
+            {
+                Format = Format.D32_Float,
+                ArraySize = 1,
+                MipLevels = 1,
+                Width = width,
+                Height = height,
+                SampleDescription = new SampleDescription(1, 0),
+                Usage = ResourceUsage.Default,
+                BindFlags = BindFlags.DepthStencil,
+                CpuAccessFlags = CpuAccessFlags.None,
+                OptionFlags = ResourceOptionFlags.None
+            });
+
+            var dsvDesc = new DepthStencilViewDescription
+            {
+                Dimension = DepthStencilViewDimension.Texture2D,
+                Flags = DepthStencilViewFlags.None,
+                Format = depthBuffer.Description.Format,
+                Texture2D = new DepthStencilViewDescription.Texture2DResource() { MipSlice = 0 }
+            };
+
+            res.ShaderResourceView = new ShaderResourceView(d3d.Device, texture);
+            res.TargetTexture = texture;
+            res.TargetView = new RenderTargetView(d3d.Device, texture);
+            res.DepthStencilView = new DepthStencilView(d3d.Device, depthBuffer, dsvDesc);
+            res._AddDisposable(res.ShaderResourceView);
+            res._AddDisposable(res.DepthStencilView);
+
+            return res;
+        }
+
+        public static RenderTarget[] FromSwapTextureSet(DrawSystem.D3DData d3d, String name, HmdDevice.HmdSwapTextureSet swapTextureSet)
+        {
+            var resultList = new List<RenderTarget>();
+
+            int texCount = swapTextureSet.TexturePtrs.Count();
+            for (int texIndex = 0; texIndex < texCount; ++texIndex)
+            {
+                IntPtr texPtr = swapTextureSet.TexturePtrs[texIndex];
+                var texture = new Texture2D(texPtr);
+
+                var res = FromTexture(d3d, name + texIndex, texture);
+                resultList.Add(res);
+            }
+
+            return resultList.ToArray();
+        }
 	}
 }

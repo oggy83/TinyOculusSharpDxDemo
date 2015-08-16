@@ -24,14 +24,38 @@ namespace TinyOculusSharpDxDemo
 			m_context = context;
 			m_hmd = hmd;
 
-			// Create render targets for each HMD eye
-			var sizeArray = hmd.EyeResolutions;
-			var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
-			for (int index = 0; index < 2; ++index)
-			{
-				var renderTarget = RenderTarget.CreateRenderTarget(m_d3d, resNames[index], sizeArray[index].Width, sizeArray[index].Height);
-				m_repository.AddResource(renderTarget);
-			}
+            // Create render targets for each HMD eye
+            m_textureSets = new HmdDevice.HmdSwapTextureSet[2];
+            var sizeArray = hmd.EyeResolutions;
+            var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
+            for (int index = 0; index < 2; ++index)
+            {
+                var textureSet = m_hmd.CreateSwapTextureSet(d3d.Device, new Texture2DDescription()
+                {
+                    Format = Format.R8G8B8A8_UNorm,
+                    ArraySize = 1,
+                    MipLevels = 1,
+                    Width = sizeArray[index].Width,
+                    Height = sizeArray[index].Height,
+                    SampleDescription = new SampleDescription(1, 0),
+                    Usage = ResourceUsage.Default,
+                    BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    OptionFlags = ResourceOptionFlags.None
+                });
+                m_textureSets[index] = textureSet;
+
+                var renderTargetList = RenderTarget.FromSwapTextureSet(m_d3d, resNames[index], textureSet);
+                for (int rtIndex = 0; rtIndex < renderTargetList.Count(); ++rtIndex)
+                {
+                    m_repository.AddResource(renderTargetList[rtIndex]);
+                    m_textureSets[index].SetTextureView(rtIndex, (IntPtr)renderTargetList[rtIndex].TargetView.NativePointer);
+                }
+            }
+
+            // Create temporaly render target
+            var tmpRt = RenderTarget.CreateRenderTarget(d3d, "Temp", sizeArray[0].Width, sizeArray[1].Height);
+            m_repository.AddResource(tmpRt);
 
 			m_commandListTable = new List<CommandList>();
 		}
@@ -43,13 +67,22 @@ namespace TinyOculusSharpDxDemo
 				commandList.Dispose();
 			}
 
+            foreach (var textureSet in m_textureSets)
+            {
+                textureSet.Dispose();
+            }
+
 			m_context.Dispose();
 		}
 
 		public RenderTarget StartPass(DrawSystem.WorldData data)
 		{
+            m_textureSets[0].AdvanceToNextTexture();// 
+            m_textureSets[1].AdvanceToNextTexture();
+            int texIndex = m_textureSets[0].CurrentIndex;
+
             m_worldData = data;
-			var renderTarget = m_repository.FindResource<RenderTarget>("OVRLeftEye");
+			var renderTarget = m_repository.FindResource<RenderTarget>("Temp");
 			var eyeOffset = m_hmd.GetEyePoses();
             var proj = _CalcProjection(1, m_worldData.NearClip, m_worldData.FarClip);
 
@@ -66,45 +99,51 @@ namespace TinyOculusSharpDxDemo
 
 		public void EndPass()
 		{
-			var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye"), m_repository.FindResource<RenderTarget>("OVRRightEye") };
-			var eyeOffset = m_hmd.GetEyePoses();
+            int texIndex = m_textureSets[0].CurrentIndex;
+            var renderTargets = new[] { m_repository.FindResource<RenderTarget>("OVRLeftEye" + texIndex), m_repository.FindResource<RenderTarget>("OVRRightEye" + texIndex) };
+            var tmpRenderTarget = m_repository.FindResource<RenderTarget>("Temp");
+            var eyeOffset = m_hmd.GetEyePoses();
             var proj = _CalcProjection(0, m_worldData.NearClip, m_worldData.FarClip);
 
-			if (m_isContextDirty)
-			{
-				var prevCommandList = m_context.FinishCommandList();
-				m_commandListTable.Add(prevCommandList);
-				m_isContextDirty = false;
-			}
+            if (m_isContextDirty)
+            {
+                var prevCommandList = m_context.FinishCommandList();
+                m_commandListTable.Add(prevCommandList);
+                m_isContextDirty = false;
+            }
 
-			// render right eye image to left eye buffer
-			foreach (var commandList in m_commandListTable)
-			{
-				m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
-			}
+            // render right eye image to temp buffer
+            foreach (var commandList in m_commandListTable)
+            {
+                m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
+            }
 
-			// copy left eye buffer to right eye buffer
-			m_d3d.Device.ImmediateContext.CopyResource(renderTargets[0].TargetTexture, renderTargets[1].TargetTexture);
+            // copy temp buffer to right eye buffer
+            m_d3d.Device.ImmediateContext.CopyResource(tmpRenderTarget.TargetTexture, renderTargets[1].TargetTexture);
 
-			// set left eye settings
-			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0], proj);
+            // set left eye settings
+            m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTargets[0], eyeOffset[0], proj);
 
-			// render left eye image to left eye buffer
-			foreach (var commandList in m_commandListTable)
-			{
-				m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
-			}
+            // render left eye image to temp buffer
+            foreach (var commandList in m_commandListTable)
+            {
+                m_d3d.Device.ImmediateContext.ExecuteCommandList(commandList, true);
+            }
 
-			var leftEyeRT = m_repository.FindResource<RenderTarget>("OVRLeftEye");
-			var rightEyeRT = m_repository.FindResource<RenderTarget>("OVRRightEye");
-			m_hmd.EndScene(leftEyeRT, rightEyeRT);
+            // copy temp buffer to left eye buffer
+            m_d3d.Device.ImmediateContext.CopyResource(tmpRenderTarget.TargetTexture, renderTargets[0].TargetTexture);
 
-			// delete command list
-			foreach (var commandList in m_commandListTable)
-			{
-				commandList.Dispose();
-			}
-			m_commandListTable.Clear();
+            m_hmd.EndScene(m_textureSets[0], m_textureSets[1]);
+
+            // delete command list
+            foreach (var commandList in m_commandListTable)
+            {
+                commandList.Dispose();
+            }
+            m_commandListTable.Clear();
+
+            int syncInterval = 0;// 0 => immediately return, 1 => vsync
+            m_d3d.SwapChain.Present(syncInterval, PresentFlags.None);
 		}
 
 		public void DrawModel(Matrix worldTrans, Color4 color, DrawSystem.MeshData mesh, TextureView tex, DrawSystem.RenderMode renderMode)
@@ -158,6 +197,7 @@ namespace TinyOculusSharpDxDemo
 		private List<CommandList> m_commandListTable = null;
 		private bool m_isContextDirty = false;
         private DrawSystem.WorldData m_worldData;
+        private HmdDevice.HmdSwapTextureSet[] m_textureSets = null;
 
 		#endregion // private members
 
