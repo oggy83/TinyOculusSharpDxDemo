@@ -1,0 +1,8 @@
+﻿mirroring
+performance monitor
+use ovrHmd_CalcEyePoses instread of ovrHmd_GetEyePoses
+queue ahead
+refactor : HmdSwapTextureSet
+share DepthBuffer
+dispose SwapTextureSet
+support result of ovrHmd_SubmitFrame
