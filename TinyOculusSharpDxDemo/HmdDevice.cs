@@ -310,6 +310,11 @@ namespace TinyOculusSharpDxDemo
             }
         }
 
+        public HmdMirrorTexture CreateMirrorTexture(Device device, int width, int height)
+        {
+            return new HmdMirrorTexture(m_handle.Ptr, device, width, height);
+        }
+
         #region private types
 
         [StructLayout(LayoutKind.Sequential)]

@@ -418,17 +418,11 @@ namespace TinyOculusSharpDxDemo
         [DllImport("libovr.dll")]
         public extern static int ovrHmd_DestroySwapTextureSet(IntPtr hmd, IntPtr textureSet);
 
-        //OVR_PUBLIC_FUNCTION(ovrResult) ovrHmd_CreateMirrorTextureD3D11(ovrHmd hmd,
-        //                                                       ID3D11Device* device,
-        //                                                       const D3D11_TEXTURE2D_DESC* desc,
-        //                                                       ovrTexture** outMirrorTexture);
-
-        //OVR_PUBLIC_FUNCTION(void) ovrHmd_DestroyMirrorTexture(ovrHmd hmd, ovrTexture* mirrorTexture);
-
-        /*
         [DllImport("libovr.dll")]
-		public extern static bool ovrHmd_ConfigureRendering(IntPtr hmd, IntPtr apiConfig, uint distortionCaps, ovrFovPort[] eyeFovIn, [Out] ovrEyeRenderDesc[] eyeRenderDescOut);
-        */
+        public extern static int ovrHmd_CreateMirrorTextureD3D11(IntPtr hmd, IntPtr device, IntPtr desc, out IntPtr outMirrorTexture);
+
+        [DllImport("libovr.dll")]
+        public extern static int ovrHmd_DestroyMirrorTexture(IntPtr hmd, IntPtr mirrorTexture);
 
         [DllImport("libovr.dll")]
         public extern static ovrEyeRenderDesc ovrHmd_GetRenderDesc(IntPtr hmd, ovrEyeType eyeType, ovrFovPort fov);

@@ -1,5 +1,4 @@
-﻿mirroring
-performance monitor
+﻿performance monitor
 use ovrHmd_CalcEyePoses instread of ovrHmd_GetEyePoses
 queue ahead
 refactor : HmdSwapTextureSet

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 using System.Threading.Tasks;
 using SharpDX;
 using SharpDX.Windows;
@@ -57,6 +58,10 @@ namespace TinyOculusSharpDxDemo
             var tmpRt = RenderTarget.CreateRenderTarget(d3d, "Temp", sizeArray[0].Width, sizeArray[1].Height);
             m_repository.AddResource(tmpRt);
 
+            // Create texture for Mirroring
+            Size defaultRenderTargetSize = m_repository.GetDefaultRenderTarget().Resolution;
+            m_mirrorTexture = m_hmd.CreateMirrorTexture(m_d3d.Device, defaultRenderTargetSize.Width, defaultRenderTargetSize.Height);
+
 			m_commandListTable = new List<CommandList>();
 		}
 
@@ -66,6 +71,8 @@ namespace TinyOculusSharpDxDemo
 			{
 				commandList.Dispose();
 			}
+
+            m_mirrorTexture.Dispose();
 
             foreach (var textureSet in m_textureSets)
             {
@@ -142,6 +149,10 @@ namespace TinyOculusSharpDxDemo
             }
             m_commandListTable.Clear();
 
+            // mirroring
+            var defaultRenderTarget = m_repository.GetDefaultRenderTarget();
+            m_d3d.Device.ImmediateContext.CopyResource(m_mirrorTexture.GetResource(), defaultRenderTarget.TargetTexture);
+
             int syncInterval = 0;// 0 => immediately return, 1 => vsync
             m_d3d.SwapChain.Present(syncInterval, PresentFlags.None);
 		}
@@ -198,6 +209,7 @@ namespace TinyOculusSharpDxDemo
 		private bool m_isContextDirty = false;
         private DrawSystem.WorldData m_worldData;
         private HmdDevice.HmdSwapTextureSet[] m_textureSets = null;
+        private HmdMirrorTexture m_mirrorTexture = null;
 
 		#endregion // private members
 
