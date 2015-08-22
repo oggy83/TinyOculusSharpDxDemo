@@ -430,18 +430,16 @@ namespace TinyOculusSharpDxDemo
         public extern static int ovrHmd_SubmitFrame(IntPtr hmd, uint frameIndex, IntPtr viewScaleDesc, IntPtr layerPtrList, uint layerCount);
 
 		[DllImport("libovr.dll")]
-		public extern static void ovrHmd_GetEyePoses(IntPtr hmd, uint frameIndex, ovrVector3f[] hmdToEyeViewOffset, [Out] ovrPosef[] outEyePoses, [Out] IntPtr outHmdTrackingState);
+		public extern static ovrFrameTiming ovrHmd_GetFrameTiming(IntPtr hmd, uint frameIndex);
 
-		//[DllImport("libovr.dll")]
-		//public extern static ovrPosef ovrHmd_GetHmdPosePerEye(IntPtr hmd, ovrEyeType eye);
-
-		
+        [DllImport("libovr.dll")]
+        public extern static bool ovrHmd_SetInt(IntPtr hmd, string propertyName, int value);
 
         [DllImport("libovr.dll")]
         public extern static ovrMatrix4f ovrMatrix4f_Projection(ovrFovPort fov, float znear, float zfar, uint projectionModFlags);
 
         [DllImport("libovr.dll")]
-        public extern static bool ovrHmd_SetInt(IntPtr hmd, string propertyName, int value);
+        public extern static void ovr_CalcEyePoses(ovrPosef headPose, ovrVector3f[] hmdToEyeViewOffset, [Out] ovrPosef[] outEyePoses);
 
 	}
 }

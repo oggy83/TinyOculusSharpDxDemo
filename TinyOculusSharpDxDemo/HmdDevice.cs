@@ -198,9 +198,16 @@ namespace TinyOculusSharpDxDemo
 		
 		public void BeginScene()
 		{
+            // update m_tmpEyePoses
+            LibOVR.ovrFrameTiming ftiming = LibOVR.ovrHmd_GetFrameTiming(m_handle.Ptr, 0);
+            LibOVR.ovrTrackingState hmdState = LibOVR.ovrHmd_GetTrackingState(m_handle.Ptr, ftiming.DisplayMidpointSeconds);
+
+            var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
+            LibOVR.ovr_CalcEyePoses(hmdState.HeadPose.ThePose, hmdToEyeOffsets, m_tmpEyePoses);
+
 			// update poses
-			var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
-			LibOVR.ovrHmd_GetEyePoses(m_handle.Ptr, 0, hmdToEyeOffsets, m_tmpEyePoses, IntPtr.Zero);
+			//var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
+		    //LibOVR.ovrHmd_GetEyePoses(m_handle.Ptr, 0, hmdToEyeOffsets, m_tmpEyePoses, IntPtr.Zero);
 		}
 
 		public Matrix[] GetEyePoses()
