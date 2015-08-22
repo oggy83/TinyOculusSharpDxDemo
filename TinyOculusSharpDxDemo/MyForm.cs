@@ -33,6 +33,14 @@ namespace TinyOculusSharpDxDemo
 			
 		}
 
-		//private CRef<LibOVR.ovrHmdDesc> m_hmd = null;
+        private void _OnKeyDown(object sender, KeyEventArgs e)
+        {
+#if DEBUG
+            if (e.KeyCode == Keys.F11)
+            {
+                HmdSystem.GetInstance().GetDevice().SwitchPerfDisplay();
+            }
+#endif
+        }
 	}
 }

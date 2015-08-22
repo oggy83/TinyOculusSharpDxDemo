@@ -315,6 +315,21 @@ namespace TinyOculusSharpDxDemo
             return new HmdMirrorTexture(m_handle.Ptr, device, width, height);
         }
 
+        public void SwitchPerfDisplay()
+        {
+#if DEBUG
+            int[] table = 
+            {
+                (int)LibOVR.ovrPerHudMode.Off, 
+                (int)LibOVR.ovrPerHudMode.LatencyTiming, 
+                (int)LibOVR.ovrPerHudMode.RenderTiming, 
+            };
+
+            m_perfModeIndex = (m_perfModeIndex + 1) % table.Length;
+            LibOVR.ovrHmd_SetInt(m_handle.Ptr, "PerfHudMode", table[m_perfModeIndex]);
+#endif
+        }
+
         #region private types
 
         [StructLayout(LayoutKind.Sequential)]
@@ -341,6 +356,7 @@ namespace TinyOculusSharpDxDemo
         private LibOVR.ovrEyeRenderDesc[] m_eyeDescArray = null;
         private LibOVR.ovrPosef[] m_tmpEyePoses = new LibOVR.ovrPosef[2];
         private bool m_isDisposed = false;
+        private int m_perfModeIndex = 0;
 
         #endregion // private members
 

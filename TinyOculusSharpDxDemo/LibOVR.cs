@@ -358,15 +358,14 @@ namespace TinyOculusSharpDxDemo
             public ovrPosef RnderPose_Left;
             public ovrPosef RnderPose_Right;
         }
+
+        public enum ovrPerHudMode
+        {
+            Off = 0,
+            LatencyTiming = 1,
+            RenderTiming = 2,
+        }
  
-        /*
-        [DllImport("libovr.dll")]
-        public extern static bool ovr_InitializeRenderingShimVersion(int requestedMinorVersion);
-
-		[DllImport("libovr.dll")]
-		public extern static bool ovr_InitializeRenderingShim();
-        */
-
 		[DllImport("libovr.dll")]
 		public extern static int ovr_Initialize(IntPtr initParams);
 
@@ -440,6 +439,9 @@ namespace TinyOculusSharpDxDemo
 
         [DllImport("libovr.dll")]
         public extern static ovrMatrix4f ovrMatrix4f_Projection(ovrFovPort fov, float znear, float zfar, uint projectionModFlags);
+
+        [DllImport("libovr.dll")]
+        public extern static bool ovrHmd_SetInt(IntPtr hmd, string propertyName, int value);
 
 	}
 }

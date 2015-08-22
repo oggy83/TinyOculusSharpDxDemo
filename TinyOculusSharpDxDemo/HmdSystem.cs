@@ -81,6 +81,12 @@ namespace TinyOculusSharpDxDemo
 			}
 		}
 
+        public HmdDevice GetDevice()
+        {
+            Debug.Assert(m_hmdDevice != null, "no hmd device is detected");
+            return m_hmdDevice;
+        }
+
 		#region private members
 
         private HmdDevice m_hmdDevice = null;
