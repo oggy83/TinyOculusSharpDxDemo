@@ -26,36 +26,23 @@ namespace TinyOculusSharpDxDemo
 			m_hmd = hmd;
 
             // Create render targets for each HMD eye
-            m_textureSets = new HmdDevice.HmdSwapTextureSet[2];
-            var sizeArray = hmd.EyeResolutions;
+            m_textureSets = new HmdSwapTextureSet[2];
+            var eyeResolution = hmd.EyeResolution;
             var resNames = new string[] { "OVRLeftEye", "OVRRightEye" };
             for (int index = 0; index < 2; ++index)
             {
-                var textureSet = m_hmd.CreateSwapTextureSet(d3d.Device, new Texture2DDescription()
-                {
-                    Format = Format.R8G8B8A8_UNorm,
-                    ArraySize = 1,
-                    MipLevels = 1,
-                    Width = sizeArray[index].Width,
-                    Height = sizeArray[index].Height,
-                    SampleDescription = new SampleDescription(1, 0),
-                    Usage = ResourceUsage.Default,
-                    BindFlags = BindFlags.RenderTarget | BindFlags.ShaderResource,
-                    CpuAccessFlags = CpuAccessFlags.None,
-                    OptionFlags = ResourceOptionFlags.None
-                });
+                var textureSet = m_hmd.CreateSwapTextureSet(d3d.Device, eyeResolution.Width, eyeResolution.Height);
                 m_textureSets[index] = textureSet;
 
                 var renderTargetList = RenderTarget.FromSwapTextureSet(m_d3d, resNames[index], textureSet);
-                for (int rtIndex = 0; rtIndex < renderTargetList.Count(); ++rtIndex)
+                foreach (var renderTarget in renderTargetList)
                 {
-                    m_repository.AddResource(renderTargetList[rtIndex]);
-                    m_textureSets[index].SetTextureView(rtIndex, (IntPtr)renderTargetList[rtIndex].TargetView.NativePointer);
+                    m_repository.AddResource(renderTarget);
                 }
             }
 
             // Create temporaly render target
-            var tmpRt = RenderTarget.CreateRenderTarget(d3d, "Temp", sizeArray[0].Width, sizeArray[1].Height);
+            var tmpRt = RenderTarget.CreateRenderTarget(d3d, "Temp", eyeResolution.Width, eyeResolution.Height);
             m_repository.AddResource(tmpRt);
 
             // Create texture for Mirroring
@@ -208,7 +195,7 @@ namespace TinyOculusSharpDxDemo
 		private List<CommandList> m_commandListTable = null;
 		private bool m_isContextDirty = false;
         private DrawSystem.WorldData m_worldData;
-        private HmdDevice.HmdSwapTextureSet[] m_textureSets = null;
+        private HmdSwapTextureSet[] m_textureSets = null;
         private HmdMirrorTexture m_mirrorTexture = null;
 
 		#endregion // private members

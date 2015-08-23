@@ -49,7 +49,7 @@ namespace TinyOculusSharpDxDemo
 		/// <summary>
 		/// get the ideal texture resolution for each eye 
 		/// </summary>
-		public Size[] EyeResolutions
+		public Size EyeResolution
 		{
 			get
 			{
@@ -61,94 +61,13 @@ namespace TinyOculusSharpDxDemo
 					resolutions[index] = new Size(size.w, size.h);
 				}
 
-				return resolutions;
+                Debug.Assert(resolutions[0] == resolutions[1], "eye resolutions may mutch");
+				return resolutions[0];
 			}
 			
 		}
 
 		#endregion // properties
-
-        #region public types
-
-        public class HmdSwapTextureSet : IDisposable
-        {
-            private Size m_resolution;
-            public Size Resolution
-            {
-                get
-                {
-                    return m_resolution;
-                }
-            }
-
-            private List<IntPtr> m_texturePtrs;
-            public List<IntPtr> TexturePtrs
-            {
-                get
-                {
-                    return m_texturePtrs;
-                }
-            }
-
-            public IntPtr Ptr
-            {
-                get
-                {
-                    return m_textureSet.Ptr;
-                }
-            }
-
-            public int CurrentIndex
-            {
-                get
-                {
-                    return m_textureSet.Value.CurrentIndex;
-                }
-            }
-
-            public HmdSwapTextureSet(IntPtr hmdPtr, CRef<LibOVR.ovrSwapTextureSet> textureSet, CRef<LibOVR.ovrTexture>[] textures)
-            {
-                m_hmdPtr = hmdPtr;
-                m_textureSet = textureSet;
-                m_textures = textures;
-
-                var csize = m_textures[0].Value.Header.TextureSize;
-                m_resolution = new Size(csize.w, csize.h);
-
-                m_texturePtrs = m_textures.Select(t => t.Value.Texture).ToList();
-            }
-
-            public void Dispose()
-            {
-                LibOVR.ovrHmd_DestroySwapTextureSet(m_hmdPtr, m_textureSet.Ptr);
-                m_textureSet.Clear();
-                m_textures = null;
-            }
-
-            public void AdvanceToNextTexture()
-            {
-                m_textureSet.Value.CurrentIndex = (m_textureSet.Value.CurrentIndex + 1) % m_textureSet.Value.TextureCount;
-                unsafe
-                {
-                    *(LibOVR.ovrSwapTextureSet*)(m_textureSet.Ptr) = m_textureSet.Value;
-                }
-            }
-
-            public void SetTextureView(int index, IntPtr ptr)
-            {
-                m_textures[index].Value.View = ptr;
-                unsafe
-                {
-                    *(LibOVR.ovrTexture*)(m_textures[index].Ptr) = m_textures[index].Value;
-                }
-            }
-
-            private IntPtr m_hmdPtr;
-            private CRef<LibOVR.ovrSwapTextureSet> m_textureSet;
-            private CRef<LibOVR.ovrTexture>[] m_textures;
-        }
-
-        #endregion // public types
 
         public HmdDevice(CRef<LibOVR.ovrHmdDesc> handle)
 		{
@@ -167,11 +86,11 @@ namespace TinyOculusSharpDxDemo
         }
 
 		/// <summary>
-		/// attach hmd to draw system
+		/// set up device
 		/// </summary>
 		/// <param name="d3d">d3d data</param>
 		/// <param name="renderTarget">render target of back buffer</param>
-		public void Attach(DrawSystem.D3DData d3d, RenderTarget renderTarget)
+		public void Setup(DrawSystem.D3DData d3d, RenderTarget renderTarget)
 		{
 			uint hmdCaps = 
 				(uint)LibOVR.ovrHmdCaps.LowPersistence
@@ -191,11 +110,6 @@ namespace TinyOculusSharpDxDemo
             m_eyeDescArray[1] = LibOVR.ovrHmd_GetRenderDesc(m_handle.Ptr, LibOVR.ovrEyeType.Right, m_handle.Value.DefaultEyeFov[1]);
 		}
 
-		public void Detach()
-		{
-			// do nothing
-		}
-		
 		public void BeginScene()
 		{
             // update m_tmpEyePoses
@@ -204,10 +118,6 @@ namespace TinyOculusSharpDxDemo
 
             var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
             LibOVR.ovr_CalcEyePoses(hmdState.HeadPose.ThePose, hmdToEyeOffsets, m_tmpEyePoses);
-
-			// update poses
-			//var hmdToEyeOffsets = new LibOVR.ovrVector3f[] { m_eyeDescArray[0].HmdtoEyeViewOffset, m_eyeDescArray[1].HmdtoEyeViewOffset };
-		    //LibOVR.ovrHmd_GetEyePoses(m_handle.Ptr, 0, hmdToEyeOffsets, m_tmpEyePoses, IntPtr.Zero);
 		}
 
 		public Matrix[] GetEyePoses()
@@ -272,49 +182,9 @@ namespace TinyOculusSharpDxDemo
 			LibOVR.ovrHmd_RecenterPose(m_handle.Ptr);
 		}
 
-        public HmdSwapTextureSet CreateSwapTextureSet(Device device, Texture2DDescription desc)
+        public HmdSwapTextureSet CreateSwapTextureSet(Device device, int width, int height)
         {
-            var cDesc = new _D3D11_TEXTURE2D_DESC()
-            {
-                Width = (uint)desc.Width,
-                Height = (uint)desc.Height,
-                MipLevels = (uint)desc.MipLevels,
-                ArraySize = (uint)desc.ArraySize,
-                Format = (uint)desc.Format,
-                SampleDesc_Count = (uint)desc.SampleDescription.Count,
-                SampleDesc_Quality = (uint)desc.SampleDescription.Quality,
-                Usage = (uint)desc.Usage,
-                BindFlags = (uint)desc.BindFlags,
-                CPUAccessFlags = (uint)desc.CpuAccessFlags,
-                MiscFlags = (uint)desc.OptionFlags,
-            };
-
-            unsafe
-			{
-                IntPtr textureSetPtr;
-                int result = LibOVR.ovrHmd_CreateSwapTextureSetD3D11(m_handle.Ptr, device.NativePointer, (IntPtr)(&cDesc), out textureSetPtr);
-                if (result != 0)
-                {
-                    MessageBox.Show("Failed to ovrHmd_CreateSwapTexturesetD3D11() code=" + result);
-                    return null;
-                }
-
-                var textureSet = CRef<LibOVR.ovrSwapTextureSet>.FromPtr(textureSetPtr);
-                if (textureSet == null)
-                {
-                    return null;
-                }
-
-                var textureList = new List<CRef<LibOVR.ovrTexture>>();
-                for (int texIndex = 0; texIndex < textureSet.Value.TextureCount; ++texIndex)
-                {
-                    IntPtr texPtr = textureSet.Value.Textures + sizeof(LibOVR.ovrTexture) * texIndex;
-                    var tex = CRef<LibOVR.ovrTexture>.FromPtr(texPtr);
-                    textureList.Add(tex);
-                }
-
-                return new HmdSwapTextureSet(m_handle.Ptr, textureSet, textureList.ToArray());
-            }
+            return new HmdSwapTextureSet(m_handle.Ptr, device, width, height);
         }
 
         public HmdMirrorTexture CreateMirrorTexture(Device device, int width, int height)
