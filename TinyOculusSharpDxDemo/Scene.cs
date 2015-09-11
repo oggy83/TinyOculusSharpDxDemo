@@ -56,7 +56,7 @@ namespace TinyOculusSharpDxDemo
             drawSys.FarClip = 10000.0f;
 
 			// camera setting
-			drawSys.Camera = Matrix.LookAtLH(new Vector3(0.0f, 1.5f, 0.0f), new Vector3(0.0f, 1.5f, 1.0f), Vector3.Up);
+			drawSys.Camera = new DrawSystem.CameraData(new Vector3(0.0f, 1.5f, 0.0f), new Vector3(0.0f, 1.5f, 1.0f), Vector3.Up);
 
 			// create random box storm
 			var boxModel = DrawModel.CreateBox(1.0f, 1.0f, Vector4.Zero);

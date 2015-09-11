@@ -43,7 +43,7 @@ namespace TinyOculusSharpDxDemo
 
 			m_context.SetWorldParams(renderTarget, data);
 			m_context.UpdateWorldParams(m_d3d.Device.ImmediateContext, data);
-			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTarget, Matrix.Identity, proj);
+			m_context.UpdateEyeParams(m_d3d.Device.ImmediateContext, renderTarget, DrawSystem.CameraData.GetIdentity(), proj);
 			m_context.ClearRenderTarget(renderTarget);
 
 			return renderTarget;

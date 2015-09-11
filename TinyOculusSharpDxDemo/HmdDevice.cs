@@ -120,22 +120,21 @@ namespace TinyOculusSharpDxDemo
             LibOVR.ovr_CalcEyePoses(hmdState.HeadPose.ThePose, hmdToEyeOffsets, m_tmpEyePoses);
 		}
 
-		public Matrix[] GetEyePoses()
+		public DrawSystem.CameraData[] GetEyePoses()
 		{
-			var result = new Matrix[2];
+			var result = new DrawSystem.CameraData[2];
 			for (int eyeIndex = 0; eyeIndex < 2; ++eyeIndex)
 			{
 				LibOVR.ovrPosef eyePose = m_tmpEyePoses[eyeIndex];
 
 				// Posef is a right-hand system, so we convert to left-hand system
-                var q = new Quaternion(-eyePose.Orientation.x, -eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w);
-                var v = new Vector3(eyePose.Position.x, eyePose.Position.y, -eyePose.Position.z);
-                
-                var forward = Vector3.Transform(Vector3.ForwardLH, q);
-                var up = Vector3.Transform(Vector3.Up, q);
-                var M = Matrix.LookAtLH(v, v + forward, up);
+				var q = new Quaternion(-eyePose.Orientation.x, -eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w);
+				var v = new Vector3(eyePose.Position.x, eyePose.Position.y, -eyePose.Position.z);
 
-				result[eyeIndex] = M;
+				var forward = Vector3.Transform(Vector3.ForwardLH, q);
+				var up = Vector3.Transform(Vector3.Up, q);
+
+				result[eyeIndex] = new DrawSystem.CameraData(v, v + forward, up);
 			}
 
 			return result;

@@ -41,7 +41,7 @@ namespace TinyOculusSharpDxDemo
 		/// </summary>
 		public struct WorldData
 		{
-			public Matrix Camera;
+			public CameraData Camera;
 			public Color3 AmbientColor;
 			public Color3 FogColor;
 			public DrawSystem.DirectionalLightData DirectionalLight;
@@ -77,6 +77,53 @@ namespace TinyOculusSharpDxDemo
 				};
 
 				return data;
+			}
+		}
+
+		/// <summary>
+		/// camera
+		/// </summary>
+		public struct CameraData
+		{
+			public Vector3 eye;
+			public Vector3 lookAt;
+			public Vector3 up;
+
+			public CameraData(Vector3 eye, Vector3 lookAt, Vector3 up)
+			{
+				this.eye = eye;
+				this.lookAt = lookAt;
+				this.up = up;
+			}
+
+			public Matrix GetViewMatrix()
+			{
+				return Matrix.LookAtLH(eye, lookAt, up);
+			}
+
+			public static CameraData GetIdentity()
+			{
+				return new CameraData(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
+			}
+
+			public static CameraData Conbine(CameraData a, CameraData b)
+			{
+				var z = (a.lookAt - a.eye);
+				z.Normalize();
+				var x = Vector3.Cross(a.up, z);
+				x.Normalize();
+				var y = Vector3.Cross(z, x);
+
+				var trans = new Matrix3x3(x.X, x.Y, x.Z, y.X, y.Y, y.Z, z.X, z.Y, z.Z);
+
+				var result = new CameraData(
+					Vector3.Transform(b.eye, trans),
+					Vector3.Transform(b.lookAt, trans),
+					Vector3.Transform(b.up, trans));
+				result.eye += a.eye;
+				result.lookAt += a.eye;
+				result.up.Normalize();
+				return result;
 			}
 		}
 

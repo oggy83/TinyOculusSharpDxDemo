@@ -157,22 +157,15 @@ namespace TinyOculusSharpDxDemo
 
 		public void UpdateWorldParams(DeviceContext context, DrawSystem.WorldData worldData)
 		{
-			// init pixel shader resource
-			var pdata = new _WorldPixelShaderConst()
-			{
-				ambientCol = new Color4(worldData.AmbientColor),
-				fogCol = new Color4(worldData.FogColor),
-				light1Col = new Color4(worldData.DirectionalLight.Color),
-				cameraPos = new Vector4(worldData.Camera.TranslationVector, 1.0f),
-				light1Dir = new Vector4(worldData.DirectionalLight.Direction, 0.0f),
-			};
-			m_context.UpdateSubresource(ref pdata, m_initParam.WorldPixConst);
+			// nothing
 		}
 
-		public void UpdateEyeParams(DeviceContext context, RenderTarget renderTarget, Matrix eyeOffset, Matrix proj)
+		public void UpdateEyeParams(DeviceContext context, RenderTarget renderTarget, DrawSystem.CameraData eyeOffset, Matrix proj)
 		{
+			var conbinedCamera = DrawSystem.CameraData.Conbine(m_worldData.Camera, eyeOffset);
+
 			// update view-projection matrix
-            var vpMatrix = m_worldData.Camera * eyeOffset * proj;
+            var vpMatrix = conbinedCamera.GetViewMatrix() * proj;
 
 			var vdata = new _WorldVertexShaderConst()
 			{
@@ -180,6 +173,17 @@ namespace TinyOculusSharpDxDemo
 				vpMat = Matrix.Transpose(vpMatrix),
 			};
 			context.UpdateSubresource(ref vdata, m_initParam.WorldVtxConst);
+
+			// init pixel shader resource
+			var pdata = new _WorldPixelShaderConst()
+			{
+				ambientCol = new Color4(m_worldData.AmbientColor),
+				fogCol = new Color4(m_worldData.FogColor),
+				light1Col = new Color4(m_worldData.DirectionalLight.Color),
+				cameraPos = new Vector4(conbinedCamera.eye, 1.0f),
+				light1Dir = new Vector4(m_worldData.DirectionalLight.Direction, 0.0f),
+			};
+			m_context.UpdateSubresource(ref pdata, m_initParam.WorldPixConst);
 		}
 
 		public void ClearRenderTarget(RenderTarget renderTarget)
